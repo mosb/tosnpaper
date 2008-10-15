@@ -397,6 +397,32 @@ In contrast, for the multi-output case shown in figure \ref{active_sampling}(b),
 
 Figure \ref{active_sampling1} shows similar results for the wind speed measurements from three of the four sensors (the Cambermet sensor being faulty during this period) where the goal was to maintain the uncertainty in wind speed below $1.5$ knots. In this case, for purposes of clarity, the fine-grained data is not shown on the plot. Note that the measurement noise is much greater in this case, and this is reflected in the uncertainty in the GP predictions. Furthermore, note that while the Sotonmet and Chimet sensors exhibit a noticeable correlation, Bramblemet appears to be relatively uncorrelated with both. This observation is reflected in the sampling that the GP performs. The independent GPs sample the Bramblemet, Sotonmet and Chimet sensors $126$, $120$ and $121$ times respectively, while over the same period, our multi-output GP samples the same sensors $115$, $88$ and $81$ times. Our multi-output GP learns on-line that the wind speed measurements of the Sotonmet and Chimet sensors are correlated, and then exploits this correlation in order to reduce the number of times that these sensors are sampled (inferring the wind speed at one location from observations of another). However, there is little or no correlation between the Bramblemet sensor and the other sensors, and thus, our multi-output GP samples Bramblemet almost as often as the independent GPs.
 
+\begin{figure}
+\begin{center}
+\begin{tabular}{cc}
+\hspace{-0.75cm}\epsfig{figure=figures/Wannengrat_station_4.eps,width=7.2cm} & \hspace{-1.00cm}\epsfig{figure=figures/Wannengrat_station_9.eps,width=7.2cm} \\
+\hspace{-0.75cm}\epsfig{figure=figures/Wannengrat_station_13.eps,width=7.2cm} & \hspace{-1.00cm}\epsfig{figure=figures/Wannengrat_station_16.eps,width=7.2cm} \\
+\hspace{-0.75cm}\epsfig{figure=figures/Wannengrat_station_29.eps,width=7.2cm} & \hspace{-1.00cm}\epsfig{figure=figures/Wannengrat_observations.eps,width=7.2cm} \\
+\end{tabular}
+\caption{Active sampling of ambient temperatures at $16$ Wannengrat sensor stations.}
+\label{active_sampling2}
+\end{center}
+\end{figure}
+
+% The stations available were 3     4     6     8     9    10    11    12    13    14    15    16    18    19    20    29
+% Ambient temperature
+% 30-Mar-2008
+
+% The Wannengrat site currently employs 7 fully instrumented permanent meteorological stations across the width of the field site. These stations allow scientists at SLF to monitor the parameters in the field site and compare them to model results. Sometimes however, higher resolution measurements are necessary in order to fully understand the complex processes which are occurring. At Wannengrat, the windfield is fairly complex and the current measurements do not fully reflect what is happening. In order to understand them, SLF have employed the assistance of SwissEx collaborators SensorScope during March 2008 and have deployed a dense network of 20 SensorScope stations for a month to measure the exact processes which are occurring on a small scale.
+% 
+% As the SensorScope stations are temporary, they have been deployed on top of the snow pack and are anchored into the snow. 
+
+% SensorScope makes use of a wireless sensor network to gather environmental data, such kind of network being very close to the so-called ad hoc networks. Such networks are formed by autonomous devices, which operate in a self-organized manner and communicate together using radio interfaces. As communication ranges are limited due to physical properties of radio waves, only close hosts can directly communicate to each other. This means that multi-hop routing must be used, in which data packets are forwarded along a chain of network nodes from the source to the destination. Ad hoc and sensor networks have been have been extensively studied in the past few years due to the difficulty to provide features such as auto-organization or robust multi-hop routing.
+% 
+% Using a multi-hop WSN makes it possible for SensorScope to gather data over a wide area with only one sink and to arbitrarily modify that monitored area by moving/adding/removing stations whenever needed. Since the stations are always monitoring their network neighborhood, these changes are quickly and automatically taken into account without the need to reconfigure the network. A station may also fail, for instance due to lack of energy, without impacting on data gathering. If that station was indeed part of a route to the sink, a new route will automatically be created and used to replace the deprecated one.
+% 
+% Besides delivering gathered data to the base station, the WSN is also responsible for quite a few duties, such as time synchronization. To allow for useful exploitation of data, each measure must indeed be tagged with a timestamp, and since the stations are subject to a substantial time drift (crystals have a correct but not very high precision), it is often needed to resynchronize the stations. In SensorScope, the current time is simply regularly propagated from the sink to the network by mean of multi-hopping. The WSN used is also very energy-efficient and is able to turn off the radio (which is the biggest energy consumer in the system) most of the time, without impacting on data gathering. Thanks to this mechanism and the solar energy system, stations should theoretically never undergo a power outage. 
+
 \section{Computation Time}\label{sec_computation}
 
 \noindent As described earlier, a key requirement of our algorithm is computational efficiency, in order that it can be used to represent multiple correlated sensors, and hence, used for real-time information processing. Here we consider the computation times involved in producing the results presented in the previous section. To this end, table \ref{comp_speed} tabulates the computation times required in order to update the algorithm as a new observation is received. This computation time represents the cost of updating the weights of equation \eqref{eq:muPsi} and the Cholesky factor of $\mat{V}$ (as described in section \ref{sec_efficient}). Once this calculation has been performed, making predictions at any point in time is extremely fast (it is simply a matter of adding another element in $\vzst$).
