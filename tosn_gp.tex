@@ -1,81 +1,84 @@
 \documentclass{acmtrans2m}
+\usepackage{preamble}
 
-\usepackage{epsfig}
-\usepackage{array}
-\usepackage{amsmath,amssymb}
-\usepackage{verbatim}
-\usepackage{epic}
-\usepackage{multirow}
-\usepackage[dvips]{color}
-
-\definecolor{blue}{rgb}{0,0,0.5}
-\definecolor{magenta}{rgb}{0.5,0,0.5}
-
-\newcommand{\argmin}{\operatornamewithlimits{argmin}}
-\newcommand{\ud}{\mathrm{d}}
-
-% The following designed for probabilities with long arguments
-
-\newcommand{\Prob}[2]{P\!\left(#1\left|#2\right.\right)}
-\newcommand{\ProbF}[3]{P\!\left(#1\!=\!#2\left|#3\right.\right)}
-\newcommand{\p}[2]{p\!\left(\left.#1\right|#2\right)}
-\newcommand{\pF}[3]{p\!\left(#1\!=\!#2\left|#3\right.\right)} 
-
-% The 'F', as in 'pF', is for 'Full'
-\newcommand{\vect}[1]{\boldsymbol{#1}}
-
-\newcommand{\vx}{\vect{x}}
-\newcommand{\vxst}{\vx_\star}
-\newcommand{\vxD}{\vect{x}_d}
-
-\newcommand{\vt}{\vect{t}}
-\newcommand{\vtst}{\vect{t}_\star}
-\newcommand{\vtD}{\vect{t}_d}
-
-\newcommand{\vy}{\vect{y}}
-\newcommand{\vyst}{\vy_\star}
-\newcommand{\vyD}{\vect{y}_d}
-
-\newcommand{\vlst}{\vect{l}_\star}
-\newcommand{\vlD}{\vect{l}_d}
-
-\newcommand{\vz}{\vect{z}}
-\newcommand{\vzst}{\vz_\star}
-\newcommand{\vzD}{\vz_d}
-
-\newcommand{\vmu}{\vect{\mu}}
-
-\newcommand{\vph}{\vect{\phi}}
-\newcommand{\vphS}{\vph_S}
-\newcommand{\phst}{\phi_\star}
-
-\newcommand{\Dt}{\vect{\mathfrak{a}}}
-\newcommand{\Kt}[1]{\vect{\mathfrak{b}}_{\star,#1}}
-
-\newcommand{\Tt}{\vect{\mathfrak{c}}}
-\newcommand{\ntS}{\vect{\mathfrak{n}}_S}
-\newcommand{\nt}[1]{\vect{\mathfrak{n}}_{S,#1}}
-\newcommand{\mt}[1]{\vect{\mathfrak{m}}_{S,#1}}
-\newcommand{\Nt}{\mat{\mathfrak{N}}_S}
-
-\newcommand{\mat}[1]{\mathbf{#1}}
-\newcommand{\N}[3]{\mat{N}\!\left(#1;#2,#3\right)}
-\newcommand{\Ph}[3]{\Phi\!\left(#1;#2,#3\right)}
-\newcommand{\dd}[2]{\delta\!\left(#1-#2\right)}
-\newcommand{\ones}[1]{\mat{1}_{#1}}
-\newcommand{\eye}[1]{\mat{I}_{#1}}
-\newcommand{\tr}{\mathrm{T}}
-\newcommand{\trace}{\operatorname{tr}}
-\newcommand{\defequal}{\triangleq}
-\newcommand{\degree}{^\circ}
-
-
-\providecommand{\norm}[1]{\left\lvert#1\right\rvert}
-\providecommand{\normw}[1]{\left\lVert#1\right\rVert_w}
-\providecommand{\card}[1]{\left\lvert#1\right\rvert}
-
-\DeclareMathOperator{\chol}{chol}
-\DeclareMathOperator{\diag}{diag}
+% \usepackage{epsfig}
+% \usepackage{array}
+% \usepackage{amsmath,amssymb}
+% \usepackage{verbatim}
+% \usepackage{epic}
+% \usepackage{multirow}
+% \usepackage[dvips]{color}
+% 
+% \definecolor{blue}{rgb}{0,0,0.5}
+% \definecolor{magenta}{rgb}{0.5,0,0.5}
+% 
+% \newcommand{\argmin}{\operatornamewithlimits{argmin}}
+% \newcommand{\ud}{\mathrm{d}}
+% 
+% % The following designed for probabilities with long arguments
+% 
+% \newcommand{\Prob}[2]{P\!\left(#1\left|#2\right.\right)}
+% \newcommand{\ProbF}[3]{P\!\left(#1\!=\!#2\left|#3\right.\right)}
+% \newcommand{\p}[2]{p\!\left(\left.#1\right|#2\right)}
+% \newcommand{\pF}[3]{p\!\left(#1\!=\!#2\left|#3\right.\right)} 
+% \newcommand{\mean}[2]{\vect{m}\!\left(\left.#1\right|#2\right)}
+% \newcommand{\cov}[3]{\mat{C}!\left(#1\!=\!#2\left|#3\right.\right)} 
+% 
+% % The 'F', as in 'pF', is for 'Full'
+% \newcommand{\vect}[1]{\boldsymbol{#1}}
+% 
+% \newcommand{\vx}{\vect{x}}
+% \newcommand{\vxst}{\vx_\star}
+% \newcommand{\vxD}{\vect{x}_d}
+% 
+% \newcommand{\vt}{\vect{t}}
+% \newcommand{\vtst}{\vect{t}_\star}
+% \newcommand{\vtD}{\vect{t}_d}
+% 
+% \newcommand{\vy}{\vect{y}}
+% \newcommand{\vyst}{\vy_\star}
+% \newcommand{\vyD}{\vect{y}_d}
+% 
+% \newcommand{\vlst}{\vect{l}_\star}
+% \newcommand{\vlD}{\vect{l}_d}
+% 
+% \newcommand{\vz}{\vect{z}}
+% \newcommand{\vzst}{\vz_\star}
+% \newcommand{\vzD}{\vz_d}
+% 
+% \newcommand{\vmu}{\vect{\mu}}
+% 
+% \newcommand{\vph}{\vect{\phi}}
+% \newcommand{\vphS}{\vph_s}
+% \newcommand{\phst}{\phi_\star}
+% 
+% \newcommand{\Dt}{\vect{\mathfrak{a}}}
+% \newcommand{\Kt}[1]{\vect{\mathfrak{b}}_{\star,#1}}
+% 
+% \newcommand{\Tt}{\vect{\mathfrak{c}}}
+% \newcommand{\ntS}{\vect{\mathfrak{n}}_s}
+% \newcommand{\nt}[1]{\vect{\mathfrak{n}}_{S,#1}}
+% \newcommand{\mt}[1]{\vect{\mathfrak{m}}_{S,#1}}
+% \newcommand{\Nt}{\mat{\mathfrak{N}}_s}
+% 
+% \newcommand{\mat}[1]{\mathbf{#1}}
+% \newcommand{\N}[3]{\mat{N}\!\left(#1;#2,#3\right)}
+% \newcommand{\Ph}[3]{\Phi\!\left(#1;#2,#3\right)}
+% \newcommand{\dd}[2]{\delta\!\left(#1-#2\right)}
+% \newcommand{\ones}[1]{\mat{1}_{#1}}
+% \newcommand{\eye}[1]{\mat{I}_{#1}}
+% \newcommand{\tr}{\mathrm{T}}
+% \newcommand{\trace}{\operatorname{tr}}
+% \newcommand{\defequal}{\triangleq}
+% \newcommand{\degree}{^\circ}
+% 
+% 
+% \providecommand{\norm}[1]{\left\lvert#1\right\rvert}
+% \providecommand{\normw}[1]{\left\lVert#1\right\rVert_w}
+% \providecommand{\card}[1]{\left\lvert#1\right\rvert}
+% 
+% \DeclareMathOperator{\chol}{chol}
+% \DeclareMathOperator{\diag}{diag}
 
 \markboth{M. A. Osborne et al.}{Computationally Efficient Multi-Output Gaussian Processes}
 
@@ -107,14 +110,14 @@ In this paper, we describe a novel, computationally efficient algorithm that fac
 \begin{document}
 
 
-\begin{bottomstuff}
-\end{bottomstuff}
+%\begin{bottomstuff}
+%\end{bottomstuff}
 
 \maketitle
 
 \section{Introduction}
 
-\noindent Sensor networks have recently generated a great deal of research interest within the computer and physical sciences, and their use for the scientific monitoring of remote and hostile environments is increasingly common-place. While early sensor networks were a simple evolution of existing automated data loggers, that collected data for later off-line scientific analysis, more recent sensor networks typically make current data available through the internet, and thus, are increasingly being used for the real-time monitoring of environmental events such as floods or storm events (see \citeN{esn} for a review of such environmental sensor networks).
+\noindent Sensor networks have recently generated a great deal of research interest within the computer and physical sciences, and their use for the scientific monitoring of remote and hostile environments is increasingly common-place. While early sensor networks were a simple evolution of existing automated data loggers, that collected data for later off-line scientific analysis, more recent sensor networks typically make current data available through the internet, and thus, are increasingly being used for the real-time monitoring of environmental events such as floods or storm events (see \cite{esn} for a review of such environmental sensor networks).
 
 Using real-time sensor data in this manner presents many novel challenges; not least the need for self-describing data formats, and standard protocols such that sensors can advertise their existence and capabilities to potential users. However, more significantly for us, many of the information processing tasks that would previously have been performed off-line by the owner or single user of an environmental sensor network (such as detecting faulty sensors, fusing noisy measurements from several sensors, and deciding how frequently readings should be taken), must now be performed in real-time on the mobile computers and PDAs carried by the multiple different users of the system (who may have different goals and may be using sensor readings for very different tasks). Furthermore, to support decision making, it may also be necessary to use the trends and correlations observed in previous data to predict the value of environmental parameters into the future, or to predict the reading of a sensor that is temporarily unavailable (e.g. due to network outages). Finally, we note that the open nature of the network (in which additional sensors may be deployed, and existing sensors may be removed, repositioned or updated at any time) means that these tasks may have to be performed with only limited knowledge of the precise location, reliability, and accuracy of each sensor.
 
@@ -202,9 +205,9 @@ q(\phi)& \defequal \p{\vyst}{\vzD,\,\phi,\,I} \\
 r(\phi)& \defequal \p{\vzD}{\phi,\,I}
 \end{split}
 \end{equation}
-at a set of sample points $\vphS=[\phi_i,\ldots,\phi_\eta]$, giving $\vect{q}_S\defequal q(\vphS)$ and $\vect{r}_S\defequal r(\vphS)$. Of course, this evaluation is a computationally expensive operation. Clearly, we can't afford to evaluate the functions $q$ and $r$ for all possible $\phi$. However, we can view this sparse sampling as a form of uncertainty about the functions $q$ and $r$, which we can again address using Bayesian probability theory. 
+at a set of sample points $\vphS=[\phi_i,\ldots,\phi_\eta]$, giving $\vect{q}_s\defequal q(\vphS)$ and $\vect{r}_s\defequal r(\vphS)$. Of course, this evaluation is a computationally expensive operation. Clearly, we can't afford to evaluate the functions $q$ and $r$ for all possible $\phi$. However, we can view this sparse sampling as a form of uncertainty about the functions $q$ and $r$, which we can again address using Bayesian probability theory. 
 
-To this end, we apply \emph{Bayesian Monte Carlo}, and thus, assign a second GP prior to these functions \cite{BZMonteCarlo}. We can then use our computed samples $\vect{q}_S$ in order to perform regression about the value of $q(\phst)$ for any other $\phst$ of interest, and similarly for $r$. To each of our hyperparameters we assign a Gaussian prior distribution (or if our hyperparameter is restricted to the positive reals, we instead assign a Gaussian distribution to its log) given by
+To this end, we apply \emph{Bayesian Monte Carlo}, and thus, assign a second GP prior to these functions \cite{BZMonteCarlo}. We can then use our computed samples $\vect{q}_s$ in order to perform regression about the value of $q(\phst)$ for any other $\phst$ of interest, and similarly for $r$. To each of our hyperparameters we assign a Gaussian prior distribution (or if our hyperparameter is restricted to the positive reals, we instead assign a Gaussian distribution to its log) given by
 \begin{align}
  \p{\phi}{I} & \defequal \N{\phi}{\vect{\nu}}{\mat{\lambda}^\tr \mat{\lambda}} \label{eq:phiprior}\,.
 \end{align}
@@ -212,18 +215,22 @@ We then assign a {\em squared exponential} covariance function for the GP over b
 \begin{align}
  K(\phi,\phi') & \defequal \N{\phi}{\phi'}{\mat{w}^\tr \mat{w}} \label{eq:BMCsqdexp}\,.
 \end{align}
-Finally, using the further definition for $i,j \in \mathcal{I}_S$, that
+Finally, using the further definition for $i,j \in \mathcal{I}_s$, that
 \begin{equation}
 \Nt(i,j) \defequal \N{\begin{bmatrix} \vph_i \\ \vph_j \end{bmatrix}}{\begin{bmatrix} \vect{\nu} \\ \vect{\nu} \end{bmatrix}}{\begin{bmatrix}  \mat{\lambda}^\tr \mat{\lambda}+\mat{w}^\tr \mat{w} & \mat{\lambda}^\tr \mat{\lambda} \\ \mat{\lambda}^\tr \mat{\lambda} & \mat{\lambda}^\tr \mat{\lambda}+\mat{w}^\tr \mat{w}
 \end{bmatrix}}\,,
 \end{equation}
-it can be shown that:
+it can be shown that
 \begin{equation} \label{eq:muPsi}
-\p{\vyst}{\vyD,I} \simeq \vect{q}_S^\tr\, \frac{\mat{K}(\vph_{S},\vph_{S})^{-1}\,\Nt\,\mat{K}(\vph_{S},\vph_{S})^{-1}\,\vect{r}_S}
-{\ones{S,1}^\tr\,\mat{K}(\vph_{S},\vph_{S})^{-1}\,\Nt\,\mat{K}(\vph_{S},\vph_{S})^{-1}\,\vect{r}_S}\,,
+\p{\vyst}{\vyD,I} \simeq \vect{q}_s^\tr\,\vect{\rho}\,,
 \end{equation}
-where $\ones{S,1}$ is a vector containing only ones of dimensions equal to $\vect{q}_S$. Note that equation \eqref{eq:muPsi} can be viewed as a linear combination of the elements of $\vect{q}_S$. With a GP on 
-$\p{\vyst}{\phi,\,I}$, each $q_i = \p{\vyst}{\vzD,\,\phi_i,\,I}$ will be a slightly different Gaussian. Hence we effectively approximate $\p{\vyst}{\vzD,I}$ as a Gaussian (process) mixture; Bayesian Monte Carlo returns a weighted sum of our predictions evaluated at a sample set of hyperparameters. Unlike traditional Monte Carlo, these weights are informed not only by our function values $\vect{q}_S$ and $\vect{r}_S$, but also by their arguments $\vphS$. Bayesian Monte Carlo makes the best use of all pertinent information \cite{MCUnsound}. As such, it avoids the risk of overfitting that occurs when applying a less principled technique such as likelihood maximisation \cite{MKBook}.
+where the weights of this linear combination are
+\begin{equation}
+\vect{\rho}\defequal\frac{\mat{K}(\vph_s,\vph_s)^{-1}\,\Nt\,\mat{K}(\vph_s,\vph_s)^{-1}\,\vect{r}_s}
+{\ones{s,1}^\tr\,\mat{K}(\vph_s,\vph_s)^{-1}\,\Nt\,\mat{K}(\vph_s,\vph_s)^{-1}\,\vect{r}_s}\,,
+\end{equation}
+and $\ones{s,1}$ is a vector containing only ones of dimensions equal to $\vect{q}_s$. With a GP on 
+$\p{\vyst}{\phi,\,I}$, each $q_i = \p{\vyst}{\vzD,\,\phi_i,\,I}$ will be a slightly different Gaussian. Hence we effectively approximate $\p{\vyst}{\vzD,I}$ as a Gaussian (process) mixture; Bayesian Monte Carlo returns a weighted sum of our predictions evaluated at a sample set of hyperparameters. Unlike traditional Monte Carlo, these weights are informed not only by our function values $\vect{q}_s$ and $\vect{r}_s$, but also by their arguments $\vphS$. Bayesian Monte Carlo makes the best use of all pertinent information \cite{MCUnsound}. As such, it avoids the risk of overfitting that occurs when applying a less principled technique such as likelihood maximisation \cite{MKBook}.
 
 
 \begin{figure}[tp!]
@@ -239,17 +246,43 @@ $\p{\vyst}{\phi,\,I}$, each $q_i = \p{\vyst}{\vzD,\,\phi_i,\,I}$ will be a sligh
 
 In the work above, we have assumed that observations of our variables of interest were corrupted by simple Gaussian noise. However, in many contexts, we instead observe \emph{censored} observations. That is, we might observe that a variable was above or below certain thresholds, but no more. Examples are rich within the weather sensor networks considered. Float sensors are prone to becoming lodged on sensor posts, reporting only that the water level is below that at which it is stuck. Other observations have been problematically rounded to the nearest integer -- if we observe a reading of $x$, we can say only that the true value was between $x-0.5$ and $x+0.5$. We extend our sequential algorithms to allow for such a noise model. 
 
-More precisely, we assume that we actually observe bounds $\vect{b}_c$ that constrain gaussian-noise corrupted versions $\vz_c$ of the underlying variables of interest $\vy_c$ at $\vx_c$. This framework allows for imprecise censored observations. Note that the noise variance for censored observations may differ from the noise variance associated with other observations. Conditioned on a combination of censored and un-censored observations, the distribution for our variables of interest is
-\begin{align} \label{eq:Marginalising}
-& \p{\vxst}{\vyD,\vect{b}_c,I}=\nonumber\\
-& \frac{\int\ud\phi\int_{\vect{b}_c}\ud\vy_c\, \p{\vxst}{\vyD,\vy_c,\phi,I}\p{\vy_c}{\vyD,\phi,I}\p{\vyD}{\phi,I}\p{\phi}{I}}
-{\int\ud\phi\int_{\vect{b}_c}\ud\vy_c\, \p{\vy_c}{\vyD,\phi,I}\p{\vyD}{\phi,I}\p{\phi}{I}}\,.
+More precisely, we assume that we actually observe bounds $\vect{b}_c$ that constrain Gaussian-noise corrupted versions $\vz_c$ of the underlying variables of interest $\vy_c$ at $\vx_c$. This framework allows for imprecise censored observations. Note that the noise variance for censored observations may differ from the noise variance associated with other observations. Conditioned on a combination of censored and un-censored observations, the distribution for our variables of interest is
+\begin{align} \label{eq:CensoredFull}
+& \p{\vyst}{\vzD,\vect{b}_c,I}=\nonumber\\
+& \frac{\int\ud\phi\int_{\vect{b}_c}\ud\vz_c\, \p{\vyst}{\vzD,\vz_c,\phi,I}\p{\vz_c}{\vzD,\phi,I}\p{\vzD}{\phi,I}\p{\phi}{I}}
+{\int\ud\phi\int_{\vect{b}_c}\ud\vz_c\, \p{\vz_c}{\vzD,\phi,I}\p{\vzD}{\phi,I}\p{\phi}{I}}\,.
 \end{align}
-While we cannot determine this full distribution easily, we can analytically determine its mean and covariance. We abuse notation slightly to have $\Ph{\vect{b}_c}{\vect{m}_c}{\mat{C}_c}\defequal\int$.
+While we cannot determine this full distribution easily, we can analytically determine its mean and covariance. We use the abbreviations $\vect{m}_{c|d}\defequal\meanskinny{\vz_c}{\vzD,\phi,I}$ and $\mat{C}_{c|d}\defequal\covskinny{\vz_c}{\vzD,\phi,I}$ 
+%and abuse notation slightly to have $\Ph{\vect{b}_c}{\vect{m}_{c|d}}{\mat{C}_{c|d}}\defequal\int_{\vect{b}_c}\ud\vz_c\,\N{\vz_c}{\vect{m}_{c|d}}{\mat{C}_{c|d}}$. 
+To reflect the influence of our censored observations, the first required modification to our previous results is to incorporate a new term into our likelihoods, 
+\begin{align}
+ r^{(cd)}(\phi) %&\defequal \p{\vzD}{\phi,\,I}\int_{\vect{b}_c}\ud\vz_c\,\p{\vz_c}{\vzD,\,\phi,\,I}\nonumber\\
+  &= \N{\vzD}{\meanskinny{\vzD}{\phi,I}}{\covskinny{\vzD}{\phi,I}}\int_{\vect{b}_c}\ud\vz_c\,\N{\vz_c}{\vect{m}_{c|d}}{\mat{C}_{c|d}}\,,
+\end{align}
+giving the new weights over hyperparameter samples
+%$\vect{r}^{(cd)}_s\defequal r^{(cd)}(\vphS)$
+\begin{equation}
+\vect{\rho}^{(cd)}\defequal\frac{\mat{K}(\vph_s,\vph_s)^{-1}\,\Nt\,\mat{K}(\vph_s,\vph_s)^{-1}\,\vect{r}^{(cd)}_s}
+{\ones{s,1}^\tr\,\mat{K}(\vph_s,\vph_s)^{-1}\,\Nt\,\mat{K}(\vph_s,\vph_s)^{-1}\,\vect{r}^{(cd)}_s}\,.
+\end{equation}
+We can then write our predictive mean as
+\begin{multline} \label{eq:CensoredMean}
+\mean{\vyst}{\vzD,\vect{b}_c,I}=\sum_{i\in s}\rho^{(cd)}_i\Biggl(\vmu_{\phi_i}(\vxst)+\mat{K}_{\phi_i}(\vxst,[\vx_c,\vxD])\\\mat{V}_{\phi_i}([\vx_c,\vxD],[\vx_c,\vxD])^{-1}
+\Biggl[\begin{array}{r}
+	\frac{\int_{\vect{b}_c}\ud\vz_c\,\vz_c\, \N{\vz_c}{\vect{m}_{c|d}}{\mat{C}_{c|d}}}{\int_{\vect{b}_c}\ud\vz_c\,\N{\vz_c}{\vect{m}_{c|d}}{\mat{C}_{c|d}}}-\vect{\mu}_{\phi_i}(\vx_c)\\
+       \vyD-\vect{\mu}_{\phi_i}(\vxD)
+      \end{array}\Biggr]\Biggr)\,,
+\end{multline}
+noting that a censored observation is intuitively treated as an uncensored observation equal to the conditional mean of the GP over the bounded region. We have also the predictive covariance
+\begin{multline} \label{eq:CensoredCov}
+\cov{\vyst}{\vzD,\vect{b}_c,I}=\sum_{i\in s}\rho^{(cd)}_i \Big(\mat{K}_{\phi_i}(\vxst,\vxst)-\\\mat{K}_{\phi_i}(\vxst,[\vx_c,\vxD])\mat{V}_{\phi_i}([\vx_c,\vxD],[\vx_c,\vxD])^{-1}\mat{K}_{\phi_i}([\vx_c,\vxD],\vxst)\Big)\,.
+\end{multline}
+
+We now have the problem of approximating the integrals $\int_{\vect{b}_c}\ud\vz_c\,\N{\vz_c}{\vect{m}_{c|d}}{\mat{C}_{c|d}}$ and $\int_{\vect{b}_c}\ud\vz_c\,\vz_c\, \N{\vz_c}{\vect{m}_{c|d}}{\mat{C}_{c|d}}$, which are non-analytic. Fortunately, there exists an efficient numerical algorithm \cite{genz1992ncm} for exactly this purpose. This does, however, introduce a practical limit to the number of censored observations we can simultaneously consider.
 
 \subsection{Efficient Implementation}\label{sec_efficient}
 
-\noindent The most stable implementation of equation \eqref{eq:GPMeanVar2} involves the use of the Cholesky decomposition, $\mat{R}(\vxD,\vxD)$, of $\mat{V}(\vxD,\vxD)$.%, such that $\mat{V}(\vxD,\vxD)=\mat{R}(\vxD,\vxD)^\tr\,\mat{R}(\vxD,\vxD)$. %We denote the Cholesky operation as $\mat{R}(\vzD,\vzD)=\chol(\mat{V}(\vzD,\vzD))$. 
+\noindent The most stable implementation of equation \eqref{eq:GPMeanVar2} involves the use of the Cholesky decomposition, $\mat{R}(\vxD,\vxD)$, of $\mat{V}(\vxD,\vxD)$. %, such that $\mat{V}(\vxD,\vxD)=\mat{R}(\vxD,\vxD)^\tr\,\mat{R}(\vxD,\vxD)$. %We denote the Cholesky operation as $\mat{R}(\vzD,\vzD)=\chol(\mat{V}(\vzD,\vzD))$. 
 %This upper triangular factor can then be used to efficiently solve our required triangular sets of linear equations.
 Performing this Cholesky decomposition represents the most computationally expensive operation we must perform; its cost scaling as $O(N^3)$ in the number of data points $N$. However, as discussed earlier, we do not intend to use our GP with a fixed set of data, but rather, within an on-line algorithm that receives new observations over time. As such, we must be able to iteratively update our predictions in as little time as possible. Fortunately, we can do so by exploiting the special structure of our problem. When we receive new data, our $\mat{V}$ matrix is changed only in the addition of a few new rows and columns. Hence most of the work that went into computing its Cholesky decomposition at the last iteration can be recycled to produce the new Cholesky decomposition (see Appendix A.1 for details of this operation). As such, we are able to reduce the overall cost of an update from $O(N^3)$ to $O(N^2)$.
 
@@ -263,9 +296,9 @@ Finally, we turn to the implementation of our marginalisation procedure. Essenti
 \begin{equation}
  K(\phi,\,\phi')=\prod_e K_e(\phi_{(e)},\,\phi'_{(e)})\,.
 \end{equation}
-If we additionally consider a simple grid of samples, such that $\vph_{S}$ is the tensor product of a set of samples $\vph_{(e),S}$ over each hyperparameter, then the problematic term in equation \eqref{eq:muPsi} reduces to the Kronecker product of the equivalent term over each individual hyperparameter:
+If we additionally consider a simple grid of samples, such that $\vph_s$ is the tensor product of a set of samples $\vph_{(e),S}$ over each hyperparameter, then the problematic term in equation \eqref{eq:muPsi} reduces to the Kronecker product of the equivalent term over each individual hyperparameter:
 \begin{align}\label{eq:KNK}
-\mat{K} \!(\vph_{S},\vph_S)^{-1}\,\Nt\,&\mat{K}\!(\vph_S,\vph_S)^{-1}\nonumber\\
+\mat{K} \!(\vph_s,\vph_s)^{-1}\,\Nt\,&\mat{K}\!(\vph_s,\vph_s)^{-1}\nonumber\\
  = & ~\mat{K}\!(\vph_{(1),S},\vph_{(1),S})^{-1}\Nt\!(\vph_{(1),S},\vph_{(1),S})\mat{K}\!(\vph_{(1),S},\vph_{(1),S})^{-1}\nonumber\\ & \otimes \mat{K}\!(\vph_{(2),S},\vph_{(2),S})^{-1}\Nt\!(\vph_{(2),S},\vph_{(2),S})\mat{K}\!(\vph_{(2),S},\vph_{(2),S})^{-1}\nonumber\\ & \otimes \ldots
 \end{align}
 This means that we only have to perform the Cholesky factorisation and multiplication with matrices whose size equals the number of samples for each hyperparameter. For example, if we use, say, $100$ samples for each of our $20$ hyperparameters, we only ever need to perform our expensive $O(\eta^3)$ operations on matrices of size $100$, rather than on the full matrix of size $100^{20}$. Thus, this represents an effective way to avoid the `curse of dimensionality'. 
@@ -453,7 +486,7 @@ Figure \ref{active_sampling2} shows the results of an active sampling experiment
 
 \noindent As described earlier, a key requirement of our algorithm is computational efficiency, in order that it can be used to represent multiple correlated sensors, and hence, used for real-time information processing. Here we consider the computation times involved in producing the results presented in the previous section. To this end, table \ref{comp_speed} tabulates the computation times required in order to update the algorithm as a new observation is received. This computation time represents the cost of updating the weights of equation \eqref{eq:muPsi} and the Cholesky factor of $\mat{V}$ (as described in section \ref{sec_efficient}). Once this calculation has been performed, making predictions at any point in time is extremely fast (it is simply a matter of adding another element in $\vzst$).
 
-Note that we expect the cost of computation to grow as $O(N^2)$ in the number of stored data points. Our proposed algorithm will automatically determine the quantity of data to store in order to achieve the desired level of accuracy. In the problems we have studied, a few hundred points were typically sufficient (the largest number we required was $750$, for the multi-output wind speed data), although of course this will depend critically on the nature of the variables under consideration. Note also that the cost of computing equation \eqref{eq:KNK} will grow in the cube of the number of samples in each hyperparameter. However, we consider only a fixed set of samples in each hyperparameter, and thus, equation \eqref{eq:KNK} need only be computed once, off-line. In this case, our on-line costs are limited by the multiplication of that term by the likelihoods $\vect{r}_S$ to give the weights of equation \eqref{eq:muPsi}, and this only grows as $O(\eta^2)$. Furthermore, note that this cost is independent of how the $\eta$ samples are distributed amongst the hyperparameters.
+Note that we expect the cost of computation to grow as $O(N^2)$ in the number of stored data points. Our proposed algorithm will automatically determine the quantity of data to store in order to achieve the desired level of accuracy. In the problems we have studied, a few hundred points were typically sufficient (the largest number we required was $750$, for the multi-output wind speed data), although of course this will depend critically on the nature of the variables under consideration. Note also that the cost of computing equation \eqref{eq:KNK} will grow in the cube of the number of samples in each hyperparameter. However, we consider only a fixed set of samples in each hyperparameter, and thus, equation \eqref{eq:KNK} need only be computed once, off-line. In this case, our on-line costs are limited by the multiplication of that term by the likelihoods $\vect{r}_s$ to give the weights of equation \eqref{eq:muPsi}, and this only grows as $O(\eta^2)$. Furthermore, note that this cost is independent of how the $\eta$ samples are distributed amongst the hyperparameters.
 
 The results in table \ref{comp_speed} indicate that real-time information processing is clearly feasible for the problem sizes that we have considered. In general, limiting the number of hyperparameter samples is of critical importance to achieving practical computation. As such, we should exploit any and all prior information that we possess about the system to limit the volume of hyperparameter space that our GP is required to explore online. For example, an informative prior expressing that the tidal period is likely to be around half a day will greatly reduce the number of samples required for this hyperparameter. Similarly, an offline analysis of any available training data will return sharply peaked posteriors over our hyperparameters that will further restrict the required volume to be searched over on-line. For example, we represent the tidal period hyperparameter with only a single sample on-line, so certain does training data make us of its value. Finally, a simpler and less flexible covariance model, with fewer hyperparameters, could be chosen if computational limitations become particularly severe. Note that the use of the completely general spherical parameterisation requires a correlation hyperparameter for each pair of variables, an approach which is clearly only feasible for moderate numbers of variables. A simple alternative, of course, would be to assume a covariance over variable label which is a function of the spatial separation between the sensors reading them - sensors that are physically close are likely to be strongly correlated - in which case we would require only enough hyperparameters to define this measure of separation. While a more complicated model will return better predictions, a simple one or two hyperparameter covariance may supply accuracy sufficient for our needs.
 
