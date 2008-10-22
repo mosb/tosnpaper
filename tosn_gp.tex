@@ -479,7 +479,7 @@ Figure \ref{active_sampling1} shows similar results for the wind speed measureme
 % The stations available were 3     4     6     8     9    10    11    12    13    14    15    16    18    19    20    29
 % Ambient temperature
 % 30-Mar-2008
-Figure \ref{active_sampling2} shows the results of an active sampling experiment over the Wannengrat data. It can be seen that there is a dramatic increase in sampling frequency coincident with the fluctuations in temperature that begin at about $t=0.7$ days.
+Figure \ref{active_sampling2} shows the results of an active sampling experiment over the Wannengrat data. It can be seen that there is a dramatic increase in sampling frequency coincident with the volatile fluctuations in temperature that begin at about $t=0.7$ days.
 
 
 \section{Computation Time}\label{sec_computation}
@@ -579,6 +579,6 @@ R_{3,3}&=\chol(S^\tr_{2,3}S_{2,3}+S^\tr_{3,3}S_{3,3}) \label{eq:R33}
 Note that the special structure of equation \eqref{eq:R33} can be exploited for the efficient resolution of the required Cholesky operation, as, for example, in the MATLAB  function $\operatorname{cholupdate}$  \cite{Matlab}. By setting the appropriate row and column dimensions (to zero if necessary), this allows us to efficiently determine the Cholesky factor given the deletion of rows and columns in any position. 
 
 \subsection{Datahalf Update}
-\subsection{Datahalf Downdate}
+
 
 \end{document}
