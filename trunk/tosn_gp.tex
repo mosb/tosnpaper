@@ -162,14 +162,14 @@ As an example, consider a covariance given by the Hadamard product of a covarian
 \begin{equation}
 K([l,t],[l',t']) \defequal K_\text{label}(l,l')\, K_\text{time}(t-d_l,t'-d_{l'})\,,
 \end{equation}
-where $\vect{d}$ allows us to express the delays between environmental variables. We use the completely general \emph{spherical parameterisation}, $\mathbf{s}$, such that
-\begin{equation}
+where $\vect{d}$ allows us to express the delays between environmental variables. We will often use the completely general \emph{spherical parameterisation}, $\mathbf{s}$, such that
+\begin{equation} \label{eq:spherical_parameterisation}
 K_\text{label}(l,l') \defequal  \diag(\vect{g})\,\mat{s}^\tr \mat{s}\,\diag(\vect{g})\,,
 \end{equation}
-where $\vect{g}$ gives an intuitive length scale for each environmental variable, and $\mat{s}^{T}\mat{s}$ is the correlation matrix \cite{PinheiroBates}. This allows us to represent any possible degree of correlation between our variables.
+where $\vect{g}$ gives an intuitive length scale for each environmental variable, and $\mat{s}^{T}\mat{s}$ is the correlation matrix \cite{PinheiroBates}. This allows us to represent any possible degree of correlation between our variables. As a less general alternative, we might instead use a term dependent on the spatial separation between sensors.
 
 Similarly, we can represent correlations over time with a wide variety of covariance functions, permitting the incorporation of what domain knowledge we have. For example, we use the additive combination of a periodic term and a non-periodic disturbance term where we expect our variable to be well-represented by the superposition of an oscillatory and a non-oscillatory component. We represent both terms using the Mat\'{e}rn class \cite{GPsBook} (with $\nu=5/2$), given by
-\begin{equation}
+\begin{equation} \label{eq:matern}
 K_\text{time}(t,t') \defequal h^2 \left(1+\sqrt{5}r+\frac{5r^2}{3}\right)\exp\left(-\sqrt{5}r\right)\,,
 \end{equation}
 where $r = \left|\frac{t-t'}{w}\right|$ for non-periodic terms, and $r = \sin \pi \left|\frac{t-t'}{w}\right|$ for periodic ones. The Mat\'{e}rn class allows us to empirically select a degree of smoothness, given by the choice of $\nu$, appropriate for the functions we are trying to track. Finally, to represent measurement noise, we further extend the covariance function to
@@ -252,7 +252,7 @@ More precisely, we assume that we actually observe bounds $\vect{b}_c$ that cons
 & \frac{\int\ud\phi\int_{\vect{b}_c}\ud\vz_c\, \p{\vyst}{\vzD,\vz_c,\phi,I}\p{\vz_c}{\vzD,\phi,I}\p{\vzD}{\phi,I}\p{\phi}{I}}
 {\int\ud\phi\int_{\vect{b}_c}\ud\vz_c\, \p{\vz_c}{\vzD,\phi,I}\p{\vzD}{\phi,I}\p{\phi}{I}}\,.
 \end{align}
-While we cannot determine this full distribution easily, we can analytically determine its mean and covariance. We use the abbreviations $\vect{m}_{c|d}\defequal\meanskinny{\vz_c}{\vzD,\phi,I}$ and $\mat{C}_{c|d}\defequal\covskinny{\vz_c}{\vzD,\phi,I}$ 
+While we cannot determine this full distribution easily, we can analytically determine its mean and covariance. We use the abbreviations $\vect{m}_{c|d}\defequal\meanskinny{\vz_c}{\vzD,\phi,I}$ and $\mat{C}_{c|d}\defequal\covskinny{\vz_c}{\vzD,\phi,I}$.
 %and abuse notation slightly to have $\Ph{\vect{b}_c}{\vect{m}_{c|d}}{\mat{C}_{c|d}}\defequal\int_{\vect{b}_c}\ud\vz_c\,\N{\vz_c}{\vect{m}_{c|d}}{\mat{C}_{c|d}}$. 
 To reflect the influence of our censored observations, the first required modification to our previous results is to incorporate a new term into our likelihoods, 
 \begin{align}
@@ -479,7 +479,7 @@ Figure \ref{active_sampling1} shows similar results for the wind speed measureme
 % The stations available were 3     4     6     8     9    10    11    12    13    14    15    16    18    19    20    29
 % Ambient temperature
 % 30-Mar-2008
-Figure \ref{active_sampling2} shows the results of an active sampling experiment over the Wannengrat data. It can be seen that there is a dramatic increase in sampling frequency coincident with the volatile fluctuations in temperature that begin at about $t=0.7$ days.
+Figure \ref{active_sampling2} shows the results of an active sampling experiment over the Wannengrat data. Given the larger number of sensors in this dataset, it was impractical to use the arbitrary parameterisation  \eqref{eq:spherical_parameterisation}, which requires a hyperparameter for every distinct pair of sensors. Instead, we express the covariance between sensors as a function of the spatial distance between the known sensor locations. We used the Mat\'{e}rn covariance function \eqref{eq:matern} for this purpose, with the spatial distance being used to fill the role of $r$. It can be seen that there is a dramatic increase in sampling frequency coincident with the volatile fluctuations in temperature that begin at about $t=0.7$ days.
 
 
 \section{Computation Time}\label{sec_computation}
@@ -580,5 +580,25 @@ Note that the special structure of equation \eqref{eq:R33} can be exploited for 
 
 \subsection{Datahalf Update}
 
+function D = updatedatahalf(S,L,C,R,two)
+% D = updatedatahalf(S,L,C,R,two)
+% D is inv(S')*L, and C is inv(R')*L(setdiff(1:end,two))
+
+if nargin<5
+    two=length(S);
+end
+
+one=1:(min(two)-1);
+rthree=(length(one)+1):length(R);
+sthree=(length(one)+length(two)+1):length(S);
+
+lowr.UT=true;
+lowr.TRANSA=true;
+
+D=nan(size(L));
+
+D(one,:) = C(one,:);
+D(two,:) = linsolve(S(two,two), L(two,:) - S(one,two)' * C(one,:), lowr);
+D(sthree,:) = linsolve(S(sthree,sthree), R(rthree, rthree)' * C(rthree,:) - S(two,sthree)' * D(two,:), lowr);
 
 \end{document}
