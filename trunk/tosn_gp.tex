@@ -252,7 +252,7 @@ More precisely, we assume that we actually observe bounds $\vect{b}_c$ that cons
 & \frac{\int\ud\phi\int_{\vect{b}_c}\ud\vz_c\, \p{\vyst}{\vzD,\vz_c,\phi,I}\p{\vz_c}{\vzD,\phi,I}\p{\vzD}{\phi,I}\p{\phi}{I}}
 {\int\ud\phi\int_{\vect{b}_c}\ud\vz_c\, \p{\vz_c}{\vzD,\phi,I}\p{\vzD}{\phi,I}\p{\phi}{I}}\,.
 \end{align}
-While we cannot determine this full distribution easily, we can analytically determine its mean and covariance. We use the abbreviations $\vect{m}_{c|d}\defequal\meanskinny{\vz_c}{\vzD,\phi,I}$ and $\mat{C}_{c|d}\defequal\covskinny{\vz_c}{\vzD,\phi,I}$.
+While we cannot determine this full, non-gaussian distribution easily, we can analytically determine its mean and covariance. We use the abbreviations $\vect{m}_{c|d}\defequal\meanskinny{\vz_c}{\vzD,\phi,I}$ and $\mat{C}_{c|d}\defequal\covskinny{\vz_c}{\vzD,\phi,I}$.
 %and abuse notation slightly to have $\Ph{\vect{b}_c}{\vect{m}_{c|d}}{\mat{C}_{c|d}}\defequal\int_{\vect{b}_c}\ud\vz_c\,\N{\vz_c}{\vect{m}_{c|d}}{\mat{C}_{c|d}}$. 
 To reflect the influence of our censored observations, the first required modification to our previous results is to incorporate a new term into our likelihoods, 
 \begin{align}
@@ -479,7 +479,7 @@ Figure \ref{active_sampling1} shows similar results for the wind speed measureme
 % The stations available were 3     4     6     8     9    10    11    12    13    14    15    16    18    19    20    29
 % Ambient temperature
 % 30-Mar-2008
-Figure \ref{active_sampling2} shows the results of an active sampling experiment over the Wannengrat data. Given the larger number of sensors in this dataset, it was impractical to use the arbitrary parameterisation  \eqref{eq:spherical_parameterisation}, which requires a hyperparameter for every distinct pair of sensors. Instead, we express the covariance between sensors as a function of the spatial distance between the known sensor locations. We used the Mat\'{e}rn covariance function \eqref{eq:matern} for this purpose, with the spatial distance being used to fill the role of $r$. It can be seen that there is a dramatic increase in sampling frequency coincident with the volatile fluctuations in temperature that begin at about $t=0.7$ days.
+Figure \ref{active_sampling2} shows the results of an active sampling experiment over the Wannengrat data. Given the larger number of sensors in this dataset, it was impractical to use the arbitrary parameterisation  \eqref{eq:spherical_parameterisation}, which requires a hyperparameter for every distinct pair of sensors. Instead, we express the covariance between sensors as a function of the spatial distance between the known sensor locations. We used the Mat\'{e}rn covariance function \eqref{eq:matern} for this purpose, with the spatial distance being used to fill the role of $r$. This spatial distance was specified by a single isotropic scale hyperparameter, which was marginalised along with the other hyperparameters. It can be seen that there is a dramatic increase in sampling frequency coincident with the volatile fluctuations in temperature that begin at about $t=0.7$ days.
 
 
 \section{Computation Time}\label{sec_computation}
@@ -548,20 +548,20 @@ Finally, in order to investigate the practical issues of deploying our informati
 
 \section{Appendix} \label{sec:Appendix}
 
-\subsection{Cholesky Factor Update}
+\subsection{Cholesky Factor Update} \label{sec:CholeskyUpdate}
 
 \small
 
 \noindent We have a positive definite matrix, represented in block form as $\begin{bmatrix} V_{1,1} & V_{1,3} \\ V^\tr_{1,3} & V_{3,3} \end{bmatrix}$ and its Cholesky factor, $\begin{bmatrix} R_{1,1} & R_{1,3} \\ 0 & R_{3,3} \end{bmatrix}$. Given a new positive definite matrix, which differs from the old only in the insertion of some new rows and columns,$\begin{bmatrix} V_{1,1} & V_{1,2} & V_{1,3} \\ V^\tr_{1,2} & V_{2,2} & V_{2,3} \\ V^\tr_{1,3} & V^\tr_{2,3} & V_{3,3} \end{bmatrix}
 $, we wish to efficiently determine its Cholesky factor, $\begin{bmatrix} S_{1,1} & S_{1,2} & S_{1,3} \\ 0 & S_{2,2} & S_{2,3} \\ 0 & 0 & S_{3,3} \end{bmatrix}
-$. For $\mat{A}$ triangular, we define $\vx=\mat{A}\setminus \vect{b}$ as the solution to the equations $\mat{A}\,\vx=\vect{b}$ as found by the use of backwards or forwards substitution. The following rules are readily obtained:
+$. For $\mat{A}$ triangular, we define $\vx=\mat{A}\setminus \vect{b}$ as the solution to the equations $\mat{A}\,\vx=\vect{b}$ as found by the use of backwards or forwards substitution. The following rules are readily obtained
 \begin{align}
  S_{1,1}&=R_{1,1}\\
 S_{1,2} &=R^\tr_{1,1}\setminus V_{1,2}\\
 S_{1,3} &=R_{1,3}\\
 S_{2,2} &=\chol (V_{2,2}-S^\tr_{1,2}S_{1,2})\\
 S_{2,3} &=S^\tr_{2,2}\setminus (V_{2,3}-S^\tr_{1,2}S_{1,3})\\
-S_{3,3} &=\chol (R^\tr_{3,3}R_{3,3}-S^\tr_{2,3}S_{2,3})
+S_{3,3} &=\chol (R^\tr_{3,3}R_{3,3}-S^\tr_{2,3}S_{2,3}) \,.
 \end{align}
 By setting the appropriate row and column dimensions (to zero if necessary), this allows us to efficiently determine the Cholesky factor given the insertion of rows and columns in any position. 
 
@@ -570,35 +570,22 @@ By setting the appropriate row and column dimensions (to zero if necessary), thi
 \noindent We have a positive definite matrix, represented in block form as $\begin{bmatrix} V_{1,1} & V_{1,2} & V_{1,3} \\ V^\tr_{1,2} & V_{2,2} & V_{2,3} \\ V^\tr_{1,3} & V^\tr_{2,3} & V_{3,3} \end{bmatrix}
 $ and its Cholesky factor, $
 \begin{bmatrix} S_{1,1} & S_{1,2} & S_{1,3} \\ 0 & S_{2,2} & S_{2,3} \\ 0 & 0 & S_{3,3} \end{bmatrix}
-$. Given a new positive definite matrix, which differs from the old only in the deletion of some new rows and columns, $\begin{bmatrix} V_{1,1} & V_{1,3} \\ V^\tr_{1,3} & V_{3,3} \end{bmatrix}$, we wish to efficiently determine its Cholesky factor $\begin{bmatrix} R_{1,1} & R_{1,3} \\ 0 & R_{3,3} \end{bmatrix}$. The following rules are readily obtained:
+$. Given a new positive definite matrix, which differs from the old only in the deletion of some new rows and columns, $\begin{bmatrix} V_{1,1} & V_{1,3} \\ V^\tr_{1,3} & V_{3,3} \end{bmatrix}$, we wish to efficiently determine its Cholesky factor $\begin{bmatrix} R_{1,1} & R_{1,3} \\ 0 & R_{3,3} \end{bmatrix}$. The following rules are readily obtained
 \begin{align}
  R_{1,1}&=S_{1,1}\\
 R_{1,3} &=S_{1,3}\\
-R_{3,3}&=\chol(S^\tr_{2,3}S_{2,3}+S^\tr_{3,3}S_{3,3}) \label{eq:R33}
+R_{3,3}&=\chol(S^\tr_{2,3}S_{2,3}+S^\tr_{3,3}S_{3,3}) \label{eq:R33}\,.
 \end{align}
 Note that the special structure of equation \eqref{eq:R33} can be exploited for the efficient resolution of the required Cholesky operation, as, for example, in the MATLAB  function $\operatorname{cholupdate}$  \cite{Matlab}. By setting the appropriate row and column dimensions (to zero if necessary), this allows us to efficiently determine the Cholesky factor given the deletion of rows and columns in any position. 
 
-\subsection{Datahalf Update}
+\subsection{Data Term Update}
 
-function D = updatedatahalf(S,L,C,R,two)
-% D = updatedatahalf(S,L,C,R,two)
-% D is inv(S')*L, and C is inv(R')*L(setdiff(1:end,two))
+\noindent We have all terms defined in Section \ref{sec:CholeskyUpdate}, in addition to $\begin{bmatrix} L_1\\L_2\\L_3 \end{bmatrix}$ and the product $\begin{bmatrix} C_1\\C_3 \end{bmatrix}\defequal\begin{bmatrix} R_{1,1} & R_{1,3} \\ 0 & R_{3,3} \end{bmatrix}^{-1} \begin{bmatrix} L_1\\L_3 \end{bmatrix}$. To efficiently determine $\begin{bmatrix} D_1\\D_2\\D_3 \end{bmatrix}\defequal\begin{bmatrix} S_{1,1} & S_{1,2} & S_{1,3} \\ 0 & S_{2,2} & S_{2,3} \\ 0 & 0 & S_{3,3} \end{bmatrix}^{-1} \begin{bmatrix} L_1\\L_2\\L_3 \end{bmatrix}$, we have
 
-if nargin<5
-    two=length(S);
-end
-
-one=1:(min(two)-1);
-rthree=(length(one)+1):length(R);
-sthree=(length(one)+length(two)+1):length(S);
-
-lowr.UT=true;
-lowr.TRANSA=true;
-
-D=nan(size(L));
-
-D(one,:) = C(one,:);
-D(two,:) = linsolve(S(two,two), L(two,:) - S(one,two)' * C(one,:), lowr);
-D(sthree,:) = linsolve(S(sthree,sthree), R(rthree, rthree)' * C(rthree,:) - S(two,sthree)' * D(two,:), lowr);
+\begin{align}
+ D_{1}&=C_{1}\\
+D_{2} &=S_{2,2}^{-\tr}\big(L_2-S_{1,2}^\tr\,C_1\big)\\
+D_{3}&=S_{3,3}^{-\tr}\big(R_{3,3}^\tr \, C_3-S_{2,3}^\tr\,D_2\big)\,.
+\end{align}
 
 \end{document}
