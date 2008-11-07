@@ -1,5 +1,6 @@
 \documentclass{acmtrans2m}
 \usepackage{preamble}
+\catcode`\@=11
 
 % \usepackage{epsfig}
 % \usepackage{array}
@@ -80,9 +81,11 @@
 % \DeclareMathOperator{\chol}{chol}
 % \DeclareMathOperator{\diag}{diag}
 
-\markboth{M. A. Osborne et al.}{Computationally Efficient Multi-Output Gaussian Processes}
 
-\title{Towards Real-Time Information Processing of Sensor Network Data using Computationally Efficient Multi-Output Gaussian Processes}
+
+\markboth{M. A. Osborne et al.}{Bayesian Gaussian Processes for Real-Time Sensor Network Applications}
+
+\title{Bayesian Gaussian Processes for Real-Time Sensor Network Applications}
 
 \author{M. A. Osborne and S. J. Roberts\\
 Department of Engineering Science\\
@@ -158,6 +161,12 @@ While the fundamental theory of GPs is well established (see \citeN{GPsBook} for
 
 \noindent The prior mean of a GP represents whatever we expect for our function before seeing any data. We take this as a function constant in time, such that $\mu([l,t])=\mu_l$. The \emph{covariance function} of a GP specifies the correlation between any pair of outputs. This can then be used to generate a covariance matrix over our set of observations and predictants. Fortunately, there exist a wide variety of functions that can serve in this purpose \cite{Abrahamsen,stein2005stc}, which can then be combined and modified in a further multitude of ways. This gives us a great deal of flexibility in our modelling of functions, with covariance functions available to model periodicity, delay, noise and long-term drifts. 
 
+But with this plethora of possibilities for adding terms to our covariance, when we should we stop? In principle, never! 
+
+Clearly, complex models include many practical simpler models as subsets. For example, a term in a covariance model can usually be negated by the selection of appropriate hyperparameters -- an additive term can have its output scale $\mat{h}$ set to zero, a multiplicative term can have its input scale $\mat{w}$ set to infinity. It is in selecting the right hyperparameters that Bayesian marginalisation demonstrates its worth. If a term is actively unrepresentative, if it specifies correlations that do not actually exist, the likelihood $\p{\vyD}{\phi,\,I}$ will favour those hyperparameters that `switch off' the misleading term. The likelihood will effectively screen this term from making any contributions to \eqref{eq:Marginalising}.
+
+Typically, however, we will have a range of possible models that fit the data more or less equally. This wouldn't be a problem, except that they tend to produce different predictions. For such multiple possible models, the argument of  William of Occam suggests that we should prefer the simplest. It's common that we might possess a prior that favours the simpler model over a more complex one. However, the remarkable action of Bayesian inference is to penalise an unnecessarily complex model, even if our priors are flat \cite{MKBook}. 
+
 As an example, consider a covariance given by the Hadamard product of a covariance function over time alone and a covariance function over environmental variable labels alone, such that
 \begin{equation}
 K([l,t],[l',t']) \defequal K_\text{label}(l,l')\, K_\text{time}(t-d_l,t'-d_{l'})\,,
@@ -207,6 +216,73 @@ r(\phi)& \defequal \p{\vzD}{\phi,\,I}
 \end{equation}
 at a set of sample points $\vphS=[\phi_i,\ldots,\phi_\eta]$, giving $\vect{q}_s\defequal q(\vphS)$ and $\vect{r}_s\defequal r(\vphS)$. Of course, this evaluation is a computationally expensive operation. Clearly, we can't afford to evaluate the functions $q$ and $r$ for all possible $\phi$. However, we can view this sparse sampling as a form of uncertainty about the functions $q$ and $r$, which we can again address using Bayesian probability theory. 
 
+Given the techniques of BMC, we can now revisit our marginalisation integrals \eqref{eq:Marginalising}. This problem is a little more sophisticated than the generic integration problem we have considered above. In particular, there are two functions we are uncertain about
+\begin{align}
+q(\phi)& \defequal \p{\vxst}{\vyD,\,\phi,\,I} \\
+r(\phi)& \defequal \p{\vyD}{\phi,\,I}
+\end{align}
+In our case, $r(\phi)$ appears in both our numerator and denominator integrals, introducing correlations between the values we estimate for them. The correlation structure of this system is illustrated in Figure \ref{fig:BMC2}.
+
+ \begin{figure}[ht]
+\centering%
+	\begin{pspicture}(-6,0)(6,5)%
+	%\showgrid
+	\GM@Inode{0}{4}{1}%	
+	%\rput(I){\rput(0,-2){\GM@node{X}}}   \GM@label[angle=90]{X}{$X$}
+	\rput(0,2){\GM@detnode{psi}}   \GM@label[angle=-90]{psi}{$\Psi$}
+
+% NB \Phi is the actual value of the hyperparameters -- doesn't make any sense to write \Phi_i
+
+	\rput(psi){\rput(-5,-1.75){\GM@plate[plateLabelPos=tl]{3.5}{1.5}{$j \in S_R$}}}
+	\rput(psi){\rput(-5,0.25){\GM@plate[plateLabelPos=bl]{3.5}{1.5}{$i \in S_Q$}}}
+	\rput(psi){\rput(-2.5,1.25){\GM@detnode[observed=true]{Qi}}}   \GM@label[angle=-90]{Qi}{$Q_i$}
+	\rput(Qi){\rput(0,-2.5){\GM@detnode[observed=true]{Ri}}}   \GM@label[angle=90]{Ri}{$R_j$}
+	\rput(Qi){\rput(-1.5,0){\GM@node[observed=true]{phiQi}}}   \GM@label[angle=180]{phiQi}{$\phi_{i}$}
+	\rput(Ri){\rput(-1.5,0){\GM@node[observed=true]{phiRi}}}   \GM@label[angle=180]{phiRi}{$\phi_{j}$}
+
+	\rput(psi){\rput(1.5,-1.75){\GM@plate[plateLabelPos=tr]{3.5}{1.5}{$j' \not\in S_R$}}}
+	\rput(psi){\rput(1.5,0.25){\GM@plate[plateLabelPos=br]{3.5}{1.5}{$i' \not\in S_Q$}}}
+	\rput(psi){\rput(2.5,1.25){\GM@detnode{Qj}}}   \GM@label[angle=-90]{Qj}{$Q_{i'}$}
+	\rput(Qj){\rput(0,-2.5){\GM@detnode{Rj}}}   \GM@label[angle=90]{Rj}{$R_{j'}$}
+	\rput(Qj){\rput(1.5,0){\GM@node[observed=true]{phiQ'}}}   \GM@label[angle=0]{phiQ'}{$\phi'_{i}$}
+	\rput(Rj){\rput(1.5,0){\GM@node[observed=true]{phiR'}}}   \GM@label[angle=0]{phiR'}{$\phi'_{j}$}
+
+
+	\pnode(-2.5,2){phii}
+	\pnode(2.5,2){phij}
+
+	\ncline[arrows=->]{phiQ'}{Qj}
+	\ncline[arrows=->]{phiR'}{Rj}
+	\ncline[arrows=->]{Qj}{psi}
+	\ncline[arrows=->]{Rj}{psi}
+
+
+	\ncline[arrows=->]{phiQi}{Qi}
+	\ncline[arrows=->]{phiRi}{Ri}
+	\ncline[arrows=->]{Qi}{psi}
+	\ncline[arrows=->]{Ri}{psi}
+
+	\ncline[arrows=-]{phiQi}{phii}
+	\ncline[arrows=-]{phiRi}{phii}
+	\ncline[arrows=->]{phii}{psi}
+
+	\ncline[arrows=-]{phiQ'}{phij}
+	\ncline[arrows=-]{phiR'}{phij}
+	\ncline[arrows=->]{phij}{psi}
+
+	\ncarc{Qj}{Qi}
+	\ncarc{Rj}{Ri}
+	\nccircle[angleA=0]{Qj}{0.5}
+	\nccircle[angleA=0]{Qi}{0.5}
+	\nccircle[angleA=180]{Rj}{0.5}
+	\nccircle[angleA=180]{Ri}{0.5}
+
+	\end{pspicture}%
+% NB: X is irrelevant if we are doing an expectation integral -- just drop it
+\caption{Bayesian network for marginalising hyperparameters using BMC.}
+\label{fig:BMC2}
+\end{figure}
+
 To this end, we apply \emph{Bayesian Monte Carlo}, and thus, assign a second GP prior to these functions \cite{BZMonteCarlo}. We can then use our computed samples $\vect{q}_s$ in order to perform regression about the value of $q(\phst)$ for any other $\phst$ of interest, and similarly for $r$. To each of our hyperparameters we assign a Gaussian prior distribution (or if our hyperparameter is restricted to the positive reals, we instead assign a Gaussian distribution to its log) given by
 \begin{align}
  \p{\phi}{I} & \defequal \N{\phi}{\vect{\nu}}{\mat{\lambda}^\tr \mat{\lambda}} \label{eq:phiprior}\,.
@@ -242,7 +318,7 @@ $\p{\vyst}{\phi,\,I}$, each $q_i = \p{\vyst}{\vzD,\,\phi_i,\,I}$ will be a sligh
 \end{center}
 \end{figure}
 
-\subsection{Censored Readings}
+\subsection{Censored Observations}
 
 In the work above, we have assumed that observations of our variables of interest were corrupted by simple Gaussian noise. However, in many contexts, we instead observe \emph{censored} observations. That is, we might observe that a variable was above or below certain thresholds, but no more. Examples are rich within the weather sensor networks considered. Float sensors are prone to becoming lodged on sensor posts, reporting only that the water level is below that at which it is stuck. Other observations have been problematically rounded to the nearest integer -- if we observe a reading of $x$, we can say only that the true value was between $x-0.5$ and $x+0.5$. We extend our sequential algorithms to allow for such a noise model. 
 
@@ -354,6 +430,8 @@ llll \=llll \=llll \=llll    \kill
 
 Our algorithm can also decide which observation to make at this time, by determining which sensor will allow it the longest period of grace until it would be forced to observe again. This clearly minimises the number of costly observations. Note that this is possible due to the fact that the uncertainty of a single GP, as given by $\mat{C}_\star$ in equation \eqref{eq:GPMeanVar2}, is actually dependent only on the location of a observation, not its actual value. Hence the uncertainty we imagine remaining after taking an observation from a sensor can be quickly determined without having to speculate about what data we might possibly collect. Hence we are guaranteed to maintain our uncertainty below a specified threshold, while taking as few observations as possible.
 
+How is this possible, however, given that we don't actually receive an observation from each of those sensors when we perform this feat of imagination? Well, our solution is feasible only so long as our measure of uncertainty is that of a single highly weighted sample set of hyperparameters. It's reasonable to expect this sample to be representative of how the uncertainty would grow under any of the other significantly weighted samples. Our approach is to take the model, represented by our hyperparameters, as fixed, and investigate only how different schedules of observations affect our predictions within it. Note that the GP for a single set of hyperparameters, given by \eqref{eq:GPMeanVarNoise}, has a covariance that is a function only of the times of observation, not on what the observations actually were. Hence our uncertainty can be quickly determined without having to speculate about what data we might possibly collect. 
+
 \section{Trial Implementation}\label{sec_implementation}
 
 \subsection{Bramblemet}
@@ -410,11 +488,11 @@ We additionally tested our methods on a network of weather sensors located at Wa
 \begin{figure}[tp!]
 \begin{center}
 \begin{tabular}{cc}
-\hspace{-0.75cm}\epsfig{figure=figures/indep_at_1_reg.eps,width=7.2cm} & \hspace{-1.00cm}\epsfig{figure=figures/dep_at_1_reg.eps,width=7.2cm} \\
-\hspace{-0.75cm}\epsfig{figure=figures/indep_at_3_reg.eps,width=7.2cm} & \hspace{-1.00cm}\epsfig{figure=figures/dep_at_3_reg.eps,width=7.2cm} \\
+\hspace{-0.75cm}\epsfig{figure=figures/AT_Bramble_GP.eps,width=7.2cm} & \hspace{-1.00cm}\epsfig{figure=figures/dep_at_1_reg.eps,width=7.2cm} \\
+\hspace{-0.75cm}\epsfig{figure=figures/AT_Chi_GP.eps,width=7.2cm} & \hspace{-1.00cm}\epsfig{figure=figures/dep_at_3_reg.eps,width=7.2cm} \\
 \hspace{-0.6cm}(a) & \hspace{-0.6cm}(b) \\
 \end{tabular}
-\caption{Prediction and regression of air temperature data for (a) independent and (b) multi-output Gaussian processes.}
+\caption{One-step lookahead prediction of air temperature data for (a) a multi-output Gaussian process and (b) a Bayesian Kalman Filter. The RMSEs are a) $0.4262 \,\degree\text{C}$ and b) .}
 \label{at_reg}
 \end{center}
 \end{figure}
@@ -426,6 +504,20 @@ We additionally tested our methods on a network of weather sensors located at Wa
 We first consider figure \ref{tide_reg} showing the tide predictions, and specifically, we note the performance of our multi-output GP formalism when the Bramblemet sensor drops out at $t=1.45$ days. In this case, the independent GP quite reasonably predicts that the tide will repeat the same periodic signal it has observed in the past. However, the GP can achieve better results if it is allowed to benefit from the knowledge of the other sensors' readings during this interval of missing data. Thus, in the case of the multi-output GP, by $t=1.45$ days, the GP has successfully determined that the sensors are all very strongly correlated. Hence, when it sees an unexpected low tide in the Chimet sensor data (caused by the strong Northerly wind), these correlations lead it to infer a similarly low tide in the Bramblemet reading. Hence, the multi-output GP produces significantly more accurate predictions during the missing data interval, with associated smaller error bars.
 
 Exactly the same effect is seen in the later predictions of the Chimet tide height, where the multi-output GP predictions use observations from the other sensors to better predict the high tide height at $t=2.45$ days. Furthermore, figure \ref{at_reg} shows the air temperature sensor readings where a similar effect is observed. Again, the multi-output GP is able to better predict the missing air temperature readings from the Chimet sensor having learnt the correlation with other sensors, despite the fact that the data set is much noisier and the correlations between sensors are much weaker.
+
+\subsection{Censored Observations}
+
+\begin{figure}
+\begin{center}
+\begin{tabular}{cc}
+\hspace{-0.75cm}\epsfig{figure=figures/cens.eps,width=7.2cm} & \hspace{-1.00cm}\epsfig{figure=figures/noncens.eps,width=7.2cm} \\
+\hspace{-0.6cm}(a) & \hspace{-0.6cm}(b)
+\end{tabular}
+\caption{Prediction and regression of air pressure data for Gaussian processes assuming observations are (a) rounded to the nearest integer and (b) corrupted by simple Gaussian noise. The RMSEs are a) $0.6942 \,\text{Pa}$ and b) $0.9407\,\text{Pa}$.}
+\label{active_sampling}
+\end{center}
+\end{figure}
+
 
 \subsection{Active Data Selection}
 
@@ -481,14 +573,13 @@ Figure \ref{active_sampling1} shows similar results for the wind speed measureme
 % 30-Mar-2008
 Figure \ref{active_sampling2} shows the results of an active sampling experiment over the Wannengrat data. Given the larger number of sensors in this dataset, it was impractical to use the arbitrary parameterisation  \eqref{eq:spherical_parameterisation}, which requires a hyperparameter for every distinct pair of sensors. Instead, we express the covariance between sensors as a function of the spatial distance between the known sensor locations. We used the Mat\'{e}rn covariance function \eqref{eq:matern} for this purpose, with the spatial distance being used to fill the role of $r$. This spatial distance was specified by a single isotropic scale hyperparameter, which was marginalised along with the other hyperparameters. It can be seen that there is a dramatic increase in sampling frequency coincident with the volatile fluctuations in temperature that begin at about $t=0.7$ days.
 
-
 \section{Computation Time}\label{sec_computation}
 
 \noindent As described earlier, a key requirement of our algorithm is computational efficiency, in order that it can be used to represent multiple correlated sensors, and hence, used for real-time information processing. Here we consider the computation times involved in producing the results presented in the previous section. To this end, table \ref{comp_speed} tabulates the computation times required in order to update the algorithm as a new observation is received. This computation time represents the cost of updating the weights of equation \eqref{eq:muPsi} and the Cholesky factor of $\mat{V}$ (as described in section \ref{sec_efficient}). Once this calculation has been performed, making predictions at any point in time is extremely fast (it is simply a matter of adding another element in $\vzst$).
 
 Note that we expect the cost of computation to grow as $O(N^2)$ in the number of stored data points. Our proposed algorithm will automatically determine the quantity of data to store in order to achieve the desired level of accuracy. In the problems we have studied, a few hundred points were typically sufficient (the largest number we required was $750$, for the multi-output wind speed data), although of course this will depend critically on the nature of the variables under consideration. Note also that the cost of computing equation \eqref{eq:KNK} will grow in the cube of the number of samples in each hyperparameter. However, we consider only a fixed set of samples in each hyperparameter, and thus, equation \eqref{eq:KNK} need only be computed once, off-line. In this case, our on-line costs are limited by the multiplication of that term by the likelihoods $\vect{r}_s$ to give the weights of equation \eqref{eq:muPsi}, and this only grows as $O(\eta^2)$. Furthermore, note that this cost is independent of how the $\eta$ samples are distributed amongst the hyperparameters.
 
-The results in table \ref{comp_speed} indicate that real-time information processing is clearly feasible for the problem sizes that we have considered. In general, limiting the number of hyperparameter samples is of critical importance to achieving practical computation. As such, we should exploit any and all prior information that we possess about the system to limit the volume of hyperparameter space that our GP is required to explore online. For example, an informative prior expressing that the tidal period is likely to be around half a day will greatly reduce the number of samples required for this hyperparameter. Similarly, an offline analysis of any available training data will return sharply peaked posteriors over our hyperparameters that will further restrict the required volume to be searched over on-line. For example, we represent the tidal period hyperparameter with only a single sample on-line, so certain does training data make us of its value. Finally, a simpler and less flexible covariance model, with fewer hyperparameters, could be chosen if computational limitations become particularly severe. Note that the use of the completely general spherical parameterisation requires a correlation hyperparameter for each pair of variables, an approach which is clearly only feasible for moderate numbers of variables. A simple alternative, of course, would be to assume a covariance over variable label which is a function of the spatial separation between the sensors reading them - sensors that are physically close are likely to be strongly correlated - in which case we would require only enough hyperparameters to define this measure of separation. While a more complicated model will return better predictions, a simple one or two hyperparameter covariance may supply accuracy sufficient for our needs.
+The results in table \ref{comp_speed} indicate that real-time information processing is clearly feasible for the problem sizes that we have considered. In general, limiting the number of hyperparameter samples is of critical importance to achieving practical computation. As such, we should exploit any and all prior information that we possess about the system to limit the volume of hyperparameter space that our GP is required to explore online. For example, an informative prior expressing that the tidal period is likely to be around half a day will greatly reduce the number of samples required for this hyperparameter. Similarly, an offline analysis of any available training data will return sharply peaked posteriors over our hyperparameters that will further restrict the required volume to be searched over on-line. For example, we represent the tidal period hyperparameter with only a single sample on-line, so certain does training data make us of its value. Finally, a simpler and less flexible covariance model, with fewer hyperparameters, could be chosen if computational limitations become particularly severe. Note that the use of the completely general spherical parameterisation requires a correlation hyperparameter for each pair of variables, an approach which is clearly only feasible for moderate numbers of variables. A simple alternative, of course, would be to assume a covariance over variable label which is a function of the spatial separation between the sensors reading them -- sensors that are physically close are likely to be strongly correlated -- in which case we would require only enough hyperparameters to define this measure of separation. While a more complicated model will return better predictions, a simple one or two hyperparameter covariance may supply accuracy sufficient for our needs.
 
 
 \section{Related Work}\label{sec_related}
@@ -565,6 +656,16 @@ S_{3,3} &=\chol (R^\tr_{3,3}R_{3,3}-S^\tr_{2,3}S_{2,3}) \,.
 \end{align}
 By setting the appropriate row and column dimensions (to zero if necessary), this allows us to efficiently determine the Cholesky factor given the insertion of rows and columns in any position. 
 
+\subsection{Data Term Update}
+
+\noindent We have all terms defined in Section \ref{sec:CholeskyUpdate}, in addition to $\begin{bmatrix} L_1\\L_2\\L_3 \end{bmatrix}$ and the product $\begin{bmatrix} C_1\\C_3 \end{bmatrix}\defequal\begin{bmatrix} R_{1,1} & R_{1,3} \\ 0 & R_{3,3} \end{bmatrix}^{-1} \begin{bmatrix} L_1\\L_3 \end{bmatrix}$. To efficiently determine $\begin{bmatrix} D_1\\D_2\\D_3 \end{bmatrix}\defequal\begin{bmatrix} S_{1,1} & S_{1,2} & S_{1,3} \\ 0 & S_{2,2} & S_{2,3} \\ 0 & 0 & S_{3,3} \end{bmatrix}^{-1} \begin{bmatrix} L_1\\L_2\\L_3 \end{bmatrix}$, we have
+
+\begin{align}
+ D_{1}&=C_{1}\\
+D_{2} &=S_{2,2}^{-\tr}\big(L_2-S_{1,2}^\tr\,C_1\big)\\
+D_{3}&=S_{3,3}^{-\tr}\big(R_{3,3}^\tr \, C_3-S_{2,3}^\tr\,D_2\big)\,.
+\end{align}
+
 \subsection{Cholesky Factor Downdate}
 
 \noindent We have a positive definite matrix, represented in block form as $\begin{bmatrix} V_{1,1} & V_{1,2} & V_{1,3} \\ V^\tr_{1,2} & V_{2,2} & V_{2,3} \\ V^\tr_{1,3} & V^\tr_{2,3} & V_{3,3} \end{bmatrix}
@@ -578,14 +679,6 @@ R_{3,3}&=\chol(S^\tr_{2,3}S_{2,3}+S^\tr_{3,3}S_{3,3}) \label{eq:R33}\,.
 \end{align}
 Note that the special structure of equation \eqref{eq:R33} can be exploited for the efficient resolution of the required Cholesky operation, as, for example, in the MATLAB  function $\operatorname{cholupdate}$  \cite{Matlab}. By setting the appropriate row and column dimensions (to zero if necessary), this allows us to efficiently determine the Cholesky factor given the deletion of rows and columns in any position. 
 
-\subsection{Data Term Update}
 
-\noindent We have all terms defined in Section \ref{sec:CholeskyUpdate}, in addition to $\begin{bmatrix} L_1\\L_2\\L_3 \end{bmatrix}$ and the product $\begin{bmatrix} C_1\\C_3 \end{bmatrix}\defequal\begin{bmatrix} R_{1,1} & R_{1,3} \\ 0 & R_{3,3} \end{bmatrix}^{-1} \begin{bmatrix} L_1\\L_3 \end{bmatrix}$. To efficiently determine $\begin{bmatrix} D_1\\D_2\\D_3 \end{bmatrix}\defequal\begin{bmatrix} S_{1,1} & S_{1,2} & S_{1,3} \\ 0 & S_{2,2} & S_{2,3} \\ 0 & 0 & S_{3,3} \end{bmatrix}^{-1} \begin{bmatrix} L_1\\L_2\\L_3 \end{bmatrix}$, we have
-
-\begin{align}
- D_{1}&=C_{1}\\
-D_{2} &=S_{2,2}^{-\tr}\big(L_2-S_{1,2}^\tr\,C_1\big)\\
-D_{3}&=S_{3,3}^{-\tr}\big(R_{3,3}^\tr \, C_3-S_{2,3}^\tr\,D_2\big)\,.
-\end{align}
 
 \end{document}
