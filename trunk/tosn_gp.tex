@@ -194,15 +194,15 @@ The flexibility of our model comes at the cost of the introduction of a number o
 \p{\vxst}{\vyD,\,\phi,\,I}=\N{\vxst}{\vect{m}_\star}{\mat{C}_\star}\,,
 \end{equation}
 where, collecting our inputs as $\vxst\defequal[\vlst,\vtst]$ and $\vxD\defequal[\vlD,\vtD]$, we have:
-\small\begin{align} \label{eq:GPMeanVar2}
+\begin{align} 
 %\vect{m}_\star=\vmu_\phi([\vlst,\vtst])+\\\mat{K}_\phi([\vlst,\vtst],[\vlD,\vtD])\,\mat{K}_\phi([\vlD,\vtD],[\vlD,\vtD])^{-1}\,(\vyD-\vect{\mu}_\phi([\vlD,\vtD]))
-\vect{m}_\star&=\vmu_\phi(\vxst)+\mat{K}_\phi(\vxst,\vxD)\mat{V}_\phi(\vxD,\vxD)^{-1}(\vyD-\vect{\mu}_\phi(\vxD))\nonumber\\
-\mat{C}_\star&=\mat{K}_\phi(\vxst,\vxst)-\mat{K}_\phi(\vxst,\vxD)\mat{V}_\phi(\vxD,\vxD)^{-1}\mat{K}_\phi(\vxD,\vxst)
-\end{align}\normalsize
+\vect{m}_\star&=\vmu_\phi(\vxst)+\mat{K}_\phi(\vxst,\vxD)\mat{V}_\phi(\vxD,\vxD)^{-1}(\vyD-\vect{\mu}_\phi(\vxD))\label{eq:GPMean}\\
+\mat{C}_\star&=\mat{K}_\phi(\vxst,\vxst)-\mat{K}_\phi(\vxst,\vxD)\mat{V}_\phi(\vxD,\vxD)^{-1}\mat{K}_\phi(\vxD,\vxst)\label{eq:GPVar}
+\end{align}
 
 \subsection{Marginalisation}
 
-\noindent Of course, it is rare that we can be certain a priori about the values of our hyperparameters. Rather than equation \eqref{eq:GPMeanVar}, the quantity of our interest is actually
+\noindent Of course, it is rare that we can be certain a priori about the values of our hyperparameters. Rather than equation \eqref{eq:GPMeanVar}, we must consider
 \begin{equation} \label{eq:Marginalising}
  \p{\vyst}{\vzD,I}=\frac{\int\ud\phi\, \p{\vyst}{\vzD,\phi,I}\p{\vzD}{\phi,I}\p{\phi}{I}}
 {\int\ud\phi\, \p{\vzD}{\phi,I}\p{\phi}{I}}\,,
@@ -214,38 +214,26 @@ q(\phi)& \defequal \p{\vyst}{\vzD,\,\phi,\,I} \\
 r(\phi)& \defequal \p{\vzD}{\phi,\,I}
 \end{split}
 \end{equation}
-at a set of sample points $\vphS=[\phi_i,\ldots,\phi_\eta]$, giving $\vect{q}_s\defequal q(\vphS)$ and $\vect{r}_s\defequal r(\vphS)$. Of course, this evaluation is a computationally expensive operation. Clearly, we can't afford to evaluate the functions $q$ and $r$ for all possible $\phi$. We can view this sparse sampling as a form of uncertainty about the functions $q$ and $r$, which we can again address using Bayesian probability theory. In considering any problem of inference, we need to be clear about both what information we have and which uncertain variables we are interested in. In our case, both the values $q(\vphS)$ and their locations $\vphS$ represent valuable pieces of knowledge\footnote{As discussed by \cite{MCUnsound}, traditional, frequentist Monte Carlo effectively ignores the information content of $\vphS$, leading to several unsatisfactory features.}. As with our convention above, we will take knowledge of sample locations $\vphS$ to be implicit within $I$. 
+at a set of sample points $\vph_s=\{\phi_i,\ldots,\phi_\eta\}$, giving $\vect{q}_s\defequal q(\vph_s)$ and $\vect{r}_s\defequal r(\vph_s)$. Of course, this evaluation is a computationally expensive operation. Defining the vector of all possible function inputs as $\vph$, we clearly can't afford to evaluate $\vect{q}\defequal q(\vph)$ or $\vect{q}\defequal q(\vph)$. We can view our sparse sampling as introducing a form of uncertainty about the functions $q$ and $r$, which we can again address using Bayesian probability theory. 
 
-To perform our inference, we apply \emph{Bayesian Monte Carlo}, and thus, assign further GP priors to $q$ and $r$ \cite{BZMonteCarlo}. This choice is motivated by the fact that variables over which we have a multivariate Gaussian distribution are joint Gaussian with any projections of those variables. As such, given that integration is a projection, we can use our computed samples $\vect{q}_s$ in order to perform Gaussian process regression about the value of integrals over $q(\phi)$, and similarly for $r$. Note that the quantity we wish to perform inference about, 
+To this end, we apply \emph{Bayesian Monte Carlo}, and thus, assign further GP priors to $q$ and $r$ \cite{BZMonteCarlo}. This choice is motivated by the fact that variables over which we have a multivariate Gaussian distribution are joint Gaussian with any projections of those variables. As such, given that integration is a projection, we can use our computed samples $\vect{q}_s$ in order to perform Gaussian process regression about the value of integrals over $q(\phi)$, and similarly for $r$. Note that the quantity we wish to perform inference about, 
 \begin{equation}
- \psi\defequal\p{\vyst}{\vzD,I}= \frac{\int q(\phst)\,r(\phst)\,\p{\phst}{I}\,\ud\phst}
+ \psi\defequal\p{\vyst}{\vect{q},\,\vect{r},\,\vzD,I}= \frac{\int q(\phst)\,r(\phst)\,\p{\phst}{I}\,\ud\phst}
 {\int r(\phst)\,\p{\phst}{I}\,\ud\phst}\,,
 \end{equation} 
 possesses richer structure than that previously considered using Bayesian Monte Carlo techniques. In our case, $r(\phi)$ appears in both our numerator and denominator integrals, introducing correlations between the values we estimate for them. The correlation structure of this system is illustrated in Figure \ref{fig:BMC2}. 
 
-Of course, we don't actually know $\vect{q}_{\overline{S}}$, so the quantity of interest is, as before
+% Define $\vph_{\overline{s}}\defequal\{\phi:\phi\notin \vph_s\}$ and $\vect{q}_{\overline{s}}\defequal q(\vph_{\overline{s}})$ and $\vect{r}_{\overline{s}}\defequal r(\vph_{\overline{s}})$. Of course, we know neither $\vect{q}_{\overline{s}}$ nor $\vect{r}_{\overline{s}}$, 
+In considering any problem of inference, we need to be clear about both what information we have and which uncertain variables we are interested in. In our case, both function values, $\vect{q}_s$ and $\vect{r}_s$, and their locations, $\vph_s$, represent valuable pieces of knowledge\footnote{As discussed by \cite{MCUnsound}, traditional, frequentist Monte Carlo effectively ignores the information content of $\vph_s$, leading to several unsatisfactory features.}. As with our convention above, we will take knowledge of sample locations $\vph_s$ to be implicit within $I$. We respectively define $\vect{m}^{(q)}$ and $\vect{m}^{(r)}$ as the means for $\vect{q}$ and $\vect{r}$ conditioned on $\vect{q}_s$ and $\vect{r}_s$ from \eqref{eq:GPMean}, $\mat{C}^{(r)}$ and $\mat{C}^{(r)}$ the similarly conditional covariances from \eqref{eq:GPVar}. The ultimate quantity of our interest is then
 \begin{align}
-\p{x}{\vect{q}_S,\,I} & =\iint \p{x}{\vect{q}_S,\,\vect{q}_{\overline{S}},\,I}\,\p{\psi}{\vect{q}_S,\,\vect{q}_{\overline{S}},\,I}\, \p{\vect{q}_{\overline{S}}}{\vect{q}_S,\,I}\, \ud \vect{q}_{\overline{S}}\, \ud \psi \nonumber\\
-&=\int \psi\,\p{\psi}{\vect{q}_S,\,I} \, \ud \psi
+&\p{\vyst}{\vect{q}_S,\,\vect{r}_S,\,\vzD,\,I} \nonumber\\  
+& = \iiint \p{\vyst}{\vect{q},\,\vect{r},\,\vzD,I}\,\p{\psi}{\vect{q},\,\vect{r},\,I}\,\p{\vect{q}}{\vect{q}_S,\,I}\,\p{\vect{r}}{\vect{r}_S,\,I}\,\ud\psi\, \ud \vect{q}\,\ud \vect{r} \nonumber\\
+& = \iiint \psi\,\dd{\psi}{\frac{\int q_\star\,r_\star\,\p{\phst}{I}\,\ud\phst}
+{\int r_\star\,\p{\phst}{I}\,\ud\phst}}\, \N{\vect{q}}{\vect{m}^{(q)}}{\mat{C}^{(q)}}\, \N{\vect{r}}{\vect{m}^{(r)}}{\mat{C}^{(r)}}\,\ud\psi\, \ud \vect{q}\,\ud \vect{r} \nonumber \\
+& = \int \frac{\int m^{(q)}_\star\,r_\star\,\p{\phst}{I}\,\ud\phst}
+{\int r_\star\,\p{\phst}{I}\,\ud\phst}\, \N{\vect{r}}{\vect{m}^{(r)}}{\mat{C}^{(r)}}\,\ud \vect{r} 
 \end{align}
-Hence inference about $x$ is only ever dependent on the mean of $\p{\psi}{S,\,I}$, $m_\Psi$. Its higher moments are of interest only inasmuch as we consider how our beliefs about $\psi$ would change if we had taken different sets of samples $\vphS$.
-
-
-Note that it is only the mean of $\p{\psi}{\vect{q}_S,\,\vect{r}_S,\,I}$ that will ever enter our inference about $\vxst$. Hence we can limit ourselves to its calculation, defining the GP parameters $m_Q$, $C_Q$, $m_R$ and $C_R$ to be the expected regression equations as in \eqref{eq:BMCregression},
-\begin{align} \label{eq:mPsi}
-m_\Psi
-& \defequal \int \psi\,\p{\psi}{\vect{q}_S,\,\vect{r}_S,\,I}\,\ud\psi \nonumber\\
-& = \iiint \psi\,\p{\psi}{\vect{q},\,\vect{r},\,I}\,\p{\vect{q}}{\vect{q}_S,\,I}\,\p{\vect{r}}{\vect{r}_S,\,I}\,\ud\psi\, \ud \vect{q}\,\ud \vect{r} \nonumber\\
-& = \iiint \psi\,\dd{\psi}{\frac{\int q\,r\,\p{\phst}{I}\,\ud\phst}
-{\int r\,\p{\phst}{I}\,\ud\phst}}\, \N{q}{m_Q}{C_Q}\, \N{r}{m_R}{C_R}\,\ud\psi\, \ud q\,\ud r \nonumber \\
-& = \int \frac{\int m_Q\,r\,\p{\phst}{I}\,\ud\phst}
-{\int r\,\p{\phst}{I}\,\ud\phst}\, \N{r}{m_R}{C_R}\,\ud r 
-\end{align}
-Here, unfortunately, our integration over $r$ becomes nonanalytic. However, we can employ the Laplace approximation by expanding the integrand around an assumed peak at $m_R$.
-
-
-
-To each of our hyperparameters we assign a Gaussian prior distribution (or if our hyperparameter is restricted to the positive reals, we instead assign a Gaussian distribution to its log) given by
+Here, unfortunately, our integration over $r$ becomes nonanalytic. However, we can employ a Laplace approximation by expanding the integrand around an assumed peak at $\vect{m}^{(r)}$. Before we can state its result, to each of our hyperparameters we assign a Gaussian prior distribution (or if our hyperparameter is restricted to the positive reals, we instead assign a Gaussian distribution to its log) given by
 \begin{align}
  \p{\phi}{I} & \defequal \N{\phi}{\vect{\nu}}{\mat{\lambda}^\tr \mat{\lambda}} \label{eq:phiprior}\,.
 \end{align}
@@ -331,7 +319,7 @@ where the weights of this linear combination are
 {\ones{s,1}^\tr\,\mat{K}(\vph_s,\vph_s)^{-1}\,\Nt\,\mat{K}(\vph_s,\vph_s)^{-1}\,\vect{r}_s}\,,
 \end{equation}
 and $\ones{s,1}$ is a vector containing only ones of dimensions equal to $\vect{q}_s$. With a GP on 
-$\p{\vyst}{\phi,\,I}$, each $q_i = \p{\vyst}{\vzD,\,\phi_i,\,I}$ will be a slightly different Gaussian. Hence we effectively approximate $\p{\vyst}{\vzD,I}$ as a Gaussian (process) mixture; Bayesian Monte Carlo returns a weighted sum of our predictions evaluated at a sample set of hyperparameters. Unlike traditional Monte Carlo, these weights are informed not only by our function values $\vect{q}_s$ and $\vect{r}_s$, but also by their arguments $\vphS$. Bayesian Monte Carlo makes the best use of all pertinent information \cite{MCUnsound}. As such, it avoids the risk of overfitting that occurs when applying a less principled technique such as likelihood maximisation \cite{MKBook}.
+$\p{\vyst}{\phi,\,I}$, each $q_i = \p{\vyst}{\vzD,\,\phi_i,\,I}$ will be a slightly different Gaussian. Hence we effectively approximate $\p{\vyst}{\vzD,I}$ as a Gaussian (process) mixture; Bayesian Monte Carlo returns a weighted sum of our predictions evaluated at a sample set of hyperparameters. The assignment of these weights is informed by the best use of all pertinent information. As such, it avoids the risk of overfitting that occurs when applying a less principled technique such as likelihood maximisation \cite{MKBook}.
 
 
 \begin{figure}[tp!]
@@ -383,9 +371,9 @@ We now have the problem of approximating the integrals $\int_{\vect{b}_c}\ud\vz_
 
 \subsection{Efficient Implementation}\label{sec_efficient}
 
-\noindent The most stable implementation of equation \eqref{eq:GPMeanVar2} involves the use of the Cholesky decomposition, $\mat{R}(\vxD,\vxD)$, of $\mat{V}(\vxD,\vxD)$. %, such that $\mat{V}(\vxD,\vxD)=\mat{R}(\vxD,\vxD)^\tr\,\mat{R}(\vxD,\vxD)$. %We denote the Cholesky operation as $\mat{R}(\vzD,\vzD)=\chol(\mat{V}(\vzD,\vzD))$. 
+\noindent The most stable implementation of equations \eqref{eq:GPMean} and \eqref{eq:GPVar} involves the use of the Cholesky decomposition, $\mat{R}(\vxD,\vxD)$, of $\mat{V}(\vxD,\vxD)$. %, such that $\mat{V}(\vxD,\vxD)=\mat{R}(\vxD,\vxD)^\tr\,\mat{R}(\vxD,\vxD)$. %We denote the Cholesky operation as $\mat{R}(\vzD,\vzD)=\chol(\mat{V}(\vzD,\vzD))$. 
 %This upper triangular factor can then be used to efficiently solve our required triangular sets of linear equations.
-Performing this Cholesky decomposition represents the most computationally expensive operation we must perform; its cost scaling as $O(N^3)$ in the number of data points $N$. However, as discussed earlier, we do not intend to use our GP with a fixed set of data, but rather, within an on-line algorithm that receives new observations over time. As such, we must be able to iteratively update our predictions in as little time as possible. Fortunately, we can do so by exploiting the special structure of our problem. When we receive new data, our $\mat{V}$ matrix is changed only in the addition of a few new rows and columns. Hence most of the work that went into computing its Cholesky decomposition at the last iteration can be recycled to produce the new Cholesky decomposition (see Appendix \ref{sec:CholeskyUpdate} for details of this operation). Another problematic calculation required by \eqref{eq:GPMeanVar2} is the computation of the data-dependent term $\mat{R}(\vxD,\vxD)^{-1}(\vyD-\vect{\mu}(\vxD))$, in which $\vyD-\vect{\mu}(\vxD)$ is also only changing due to the addition of new rows. As such, efficient updating rules are also available for this term (see Appendix \ref{sec:DataTermUpdate}). As such, we are able to reduce the overall cost of an update from $O(N^3)$ to $O(N^2)$.
+Performing this Cholesky decomposition represents the most computationally expensive operation we must perform; its cost scaling as $O(N^3)$ in the number of data points $N$. However, as discussed earlier, we do not intend to use our GP with a fixed set of data, but rather, within an on-line algorithm that receives new observations over time. As such, we must be able to iteratively update our predictions in as little time as possible. Fortunately, we can do so by exploiting the special structure of our problem. When we receive new data, our $\mat{V}$ matrix is changed only in the addition of a few new rows and columns. Hence most of the work that went into computing its Cholesky decomposition at the last iteration can be recycled to produce the new Cholesky decomposition (see Appendix \ref{sec:CholeskyUpdate} for details of this operation). Another problematic calculation required by \eqref{eq:GPMean} and \eqref{eq:GPVar} is the computation of the data-dependent term $\mat{R}(\vxD,\vxD)^{-1}(\vyD-\vect{\mu}(\vxD))$, in which $\vyD-\vect{\mu}(\vxD)$ is also only changing due to the addition of new rows. As such, efficient updating rules are also available for this term (see Appendix \ref{sec:DataTermUpdate}). As such, we are able to reduce the overall cost of an update from $O(N^3)$ to $O(N^2)$.
 
 However, we can further increase the efficiency of our updates by making a judicious assumption. In particular, experience shows that our GP requires only a very small number of recent observations in order to produce good estimates. Indeed, most covariance functions have very light tails such that only points within a few multiples of the time scale are at all relevant to the point of interest. Hence we seek sensible ways of discarding information once it has been rendered `stale', to reduce both memory usage and computational requirements.
 
@@ -453,7 +441,7 @@ llll \=llll \=llll \=llll    \kill
 
 \noindent Finally, in addition to the regression and prediction problem described in section \ref{sec_info}, we are able to use the same algorithm to perform active data selection. This is a decision problem concerning which observations should be taken. In this, we once again take a utility that is a function of the uncertainty in our predictions. We specify a utility of negative infinity if our uncertainty about any variable is greater than a pre-specified threshold, and a fixed negative utility is assigned as the cost of an observation (in general, this cost could be different for different sensors). Note that the uncertainty increases monotonically in the absence of new data, and shrinks in the presence of an observation. Hence our algorithm is simply induced to make a reading whenever the uncertainty grows beyond a pre-specified threshold. 
 
-Our algorithm can also decide which observation to make at this time, by determining which sensor will allow it the longest period of grace until it would be forced to observe again. This clearly minimises the number of costly observations. Note that this is possible due to the fact that the uncertainty of a single GP, as given by $\mat{C}_\star$ in equation \eqref{eq:GPMeanVar2}, is actually dependent only on the location of a observation, not its actual value. Hence the uncertainty we imagine remaining after taking an observation from a sensor can be quickly determined without having to speculate about what data we might possibly collect. Hence we are guaranteed to maintain our uncertainty below a specified threshold, while taking as few observations as possible.
+Our algorithm can also decide which observation to make at this time, by determining which sensor will allow it the longest period of grace until it would be forced to observe again. This clearly minimises the number of costly observations. Note that this is possible due to the fact that the uncertainty of a single GP, as given by \eqref{eq:GPVar}, is actually dependent only on the location of a observation, not its actual value. Hence the uncertainty we imagine remaining after taking an observation from a sensor can be quickly determined without having to speculate about what data we might possibly collect. Hence we are guaranteed to maintain our uncertainty below a specified threshold, while taking as few observations as possible.
 
 How is this possible, however, given that we don't actually receive an observation from each of those sensors when we perform this feat of imagination? Well, our solution is feasible only so long as our measure of uncertainty is that of a single highly weighted sample set of hyperparameters. It's reasonable to expect this sample to be representative of how the uncertainty would grow under any of the other significantly weighted samples. Our approach is to take the model, represented by our hyperparameters, as fixed, and investigate only how different schedules of observations affect our predictions within it. Note that the GP for a single set of hyperparameters, given by \eqref{eq:GPMeanVarNoise}, has a covariance that is a function only of the times of observation, not on what the observations actually were. Hence our uncertainty can be quickly determined without having to speculate about what data we might possibly collect. 
 
