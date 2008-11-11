@@ -146,7 +146,7 @@ More specifically, the problem that we face can be cast as a multivariate regres
 
 \section{Gaussian Processes}\label{sec_gp}
 
-\noindent Multivariate regression problems of the form described above have often been addressed using multi-layer neural networks. However, Gaussian processes (GPs) are increasingly being applied in this area. They represent a powerful way to perform Bayesian inference about functions; we consider our environmental variables as just such a function \cite{GPsBook}. This function takes as inputs the variable label and time pair $[l,t]$ and produces as output the variable's value $x$. In this work, we will assume that our inputs are always known (e.g. our data is time-stamped), and will incorporate them into our background knowledge $I$. A GP is then a generalised multivariate Gaussian prior distribution over the (potentially infinite number of) outputs of this function:
+\noindent Multivariate regression problems of the form described above have often been addressed using multi-layer neural networks. However, Gaussian processes (GPs) are increasingly being applied in this area. They represent a powerful way to perform Bayesian inference about functions; we consider our environmental variables as just such a function \cite{GPsBook}. This function takes as inputs the variable label and time pair $[l,t]$ and produces as output the variable's value $x$. In this work, we will assume that our inputs are always known (e.g. our data is time-stamped), and will incorporate them into our background knowledge, or context, $I$. A GP is then a generalised multivariate Gaussian prior distribution over the (potentially infinite number of) outputs of this function:
 \small\begin{align}\label{eq:GPDefn}
 \p{\vy}{\vmu,\,K,\,I} & \defequal \N{\vy}{\vmu}{\mat{K}}\nonumber\\
 & \defequal\frac{1}{\sqrt{\det{2\pi\mat{K}}}}\,\exp \left(-\frac{1}{2}\,(\vy-\vmu)^\tr\,\mat{K}^{-1}\,(\vy-\vmu)\right)\,.
@@ -155,7 +155,7 @@ It is specified by prior mean and covariance functions, which generate $\vmu$ an
 %Maybe drop the following line?
  The multivariate Gaussian distribution is qualified for this role due to the fact that both its marginal probabilities and conditional probabilities are themselves Gaussian. This allows us to produce analytic posterior distributions for outputs of interest, conditioned on whatever sensor readings have been observed. Furthermore, this posterior distribution will have both a predictive mean and a variance to explicitly represent our uncertainty.
 
-While the fundamental theory of GPs is well established (see \citeN{GPsBook} for example), there is much scope for the development of computationally efficient implementations. To this end, in this work we present a novel on-line formalism of a multi-dimensional GP that allows us to model the correlations between sensor readings, and to update this model on-line as new observations are sequentially available. Space precludes a full description of this algorithm (see \cite{gp_mike} for the full details), however, in the next sections we describe the covariance functions that we use to represent correlations and delays between sensor readings, the {\em Bayesian Monte Carlo} method that we use to marginalise the hyperparameters of these covariance functions, and how we efficiently update the model as new data is received, by reusing the results of previous computations, and applying a principled `windowing' of our data series.
+While the fundamental theory of GPs is well established (see \citeN{GPsBook} for example), there is much scope for the development of computationally efficient implementations. To this end, in this work we present a novel on-line formalism of a multi-dimensional GP that allows us to model the correlations between sensor readings, and to update this model on-line as new observations are sequentially available. Space precludes a full description of this algorithm (see \cite{gp_mike} for further details), however, in the next sections we describe the covariance functions that we use to represent correlations and delays between sensor readings, the {\em Bayesian Monte Carlo} method that we use to marginalise the hyperparameters of these covariance functions, and how we efficiently update the model as new data is received, by reusing the results of previous computations, and applying a principled `windowing' of our data series.
 
 \subsection{Covariance Functions}
 
@@ -214,14 +214,45 @@ q(\phi)& \defequal \p{\vyst}{\vzD,\,\phi,\,I} \\
 r(\phi)& \defequal \p{\vzD}{\phi,\,I}
 \end{split}
 \end{equation}
-at a set of sample points $\vphS=[\phi_i,\ldots,\phi_\eta]$, giving $\vect{q}_s\defequal q(\vphS)$ and $\vect{r}_s\defequal r(\vphS)$. Of course, this evaluation is a computationally expensive operation. Clearly, we can't afford to evaluate the functions $q$ and $r$ for all possible $\phi$. However, we can view this sparse sampling as a form of uncertainty about the functions $q$ and $r$, which we can again address using Bayesian probability theory. 
+at a set of sample points $\vphS=[\phi_i,\ldots,\phi_\eta]$, giving $\vect{q}_s\defequal q(\vphS)$ and $\vect{r}_s\defequal r(\vphS)$. Of course, this evaluation is a computationally expensive operation. Clearly, we can't afford to evaluate the functions $q$ and $r$ for all possible $\phi$. We can view this sparse sampling as a form of uncertainty about the functions $q$ and $r$, which we can again address using Bayesian probability theory. In considering any problem of inference, we need to be clear about both what information we have and which uncertain variables we are interested in. In our case, both the values $q(\vphS)$ and their locations $\vphS$ represent valuable pieces of knowledge\footnote{As discussed by \cite{MCUnsound}, traditional, frequentist Monte Carlo effectively ignores the information content of $\vphS$, leading to several unsatisfactory features.}. As with our convention above, we will take knowledge of sample locations $\vphS$ to be implicit within $I$. 
 
-Given the techniques of BMC, we can now revisit our marginalisation integrals \eqref{eq:Marginalising}. This problem is a little more sophisticated than the generic integration problem we have considered above. In particular, there are two functions we are uncertain about
+To perform our inference, we apply \emph{Bayesian Monte Carlo}, and thus, assign further GP priors to $q$ and $r$ \cite{BZMonteCarlo}. This choice is motivated by the fact that variables over which we have a multivariate Gaussian distribution are joint Gaussian with any projections of those variables. As such, given that integration is a projection, we can use our computed samples $\vect{q}_s$ in order to perform Gaussian process regression about the value of integrals over $q(\phi)$, and similarly for $r$. Note that the quantity we wish to perform inference about, 
+\begin{equation}
+ \psi\defequal\p{\vyst}{\vzD,I}= \frac{\int q(\phst)\,r(\phst)\,\p{\phst}{I}\,\ud\phst}
+{\int r(\phst)\,\p{\phst}{I}\,\ud\phst}\,,
+\end{equation} 
+possesses richer structure than that previously considered using Bayesian Monte Carlo techniques. In our case, $r(\phi)$ appears in both our numerator and denominator integrals, introducing correlations between the values we estimate for them. The correlation structure of this system is illustrated in Figure \ref{fig:BMC2}. 
+
+Of course, we don't actually know $\vect{q}_{\overline{S}}$, so the quantity of interest is, as before
 \begin{align}
-q(\phi)& \defequal \p{\vxst}{\vyD,\,\phi,\,I} \\
-r(\phi)& \defequal \p{\vyD}{\phi,\,I}
+\p{x}{\vect{q}_S,\,I} & =\iint \p{x}{\vect{q}_S,\,\vect{q}_{\overline{S}},\,I}\,\p{\psi}{\vect{q}_S,\,\vect{q}_{\overline{S}},\,I}\, \p{\vect{q}_{\overline{S}}}{\vect{q}_S,\,I}\, \ud \vect{q}_{\overline{S}}\, \ud \psi \nonumber\\
+&=\int \psi\,\p{\psi}{\vect{q}_S,\,I} \, \ud \psi
 \end{align}
-In our case, $r(\phi)$ appears in both our numerator and denominator integrals, introducing correlations between the values we estimate for them. The correlation structure of this system is illustrated in Figure \ref{fig:BMC2}.
+Hence inference about $x$ is only ever dependent on the mean of $\p{\psi}{S,\,I}$, $m_\Psi$. Its higher moments are of interest only inasmuch as we consider how our beliefs about $\psi$ would change if we had taken different sets of samples $\vphS$.
+
+
+Note that it is only the mean of $\p{\psi}{\vect{q}_S,\,\vect{r}_S,\,I}$ that will ever enter our inference about $\vxst$. Hence we can limit ourselves to its calculation, defining the GP parameters $m_Q$, $C_Q$, $m_R$ and $C_R$ to be the expected regression equations as in \eqref{eq:BMCregression},
+\begin{align} \label{eq:mPsi}
+m_\Psi
+& \defequal \int \psi\,\p{\psi}{\vect{q}_S,\,\vect{r}_S,\,I}\,\ud\psi \nonumber\\
+& = \iiint \psi\,\p{\psi}{\vect{q},\,\vect{r},\,I}\,\p{\vect{q}}{\vect{q}_S,\,I}\,\p{\vect{r}}{\vect{r}_S,\,I}\,\ud\psi\, \ud \vect{q}\,\ud \vect{r} \nonumber\\
+& = \iiint \psi\,\dd{\psi}{\frac{\int q\,r\,\p{\phst}{I}\,\ud\phst}
+{\int r\,\p{\phst}{I}\,\ud\phst}}\, \N{q}{m_Q}{C_Q}\, \N{r}{m_R}{C_R}\,\ud\psi\, \ud q\,\ud r \nonumber \\
+& = \int \frac{\int m_Q\,r\,\p{\phst}{I}\,\ud\phst}
+{\int r\,\p{\phst}{I}\,\ud\phst}\, \N{r}{m_R}{C_R}\,\ud r 
+\end{align}
+Here, unfortunately, our integration over $r$ becomes nonanalytic. However, we can employ the Laplace approximation by expanding the integrand around an assumed peak at $m_R$.
+
+
+
+To each of our hyperparameters we assign a Gaussian prior distribution (or if our hyperparameter is restricted to the positive reals, we instead assign a Gaussian distribution to its log) given by
+\begin{align}
+ \p{\phi}{I} & \defequal \N{\phi}{\vect{\nu}}{\mat{\lambda}^\tr \mat{\lambda}} \label{eq:phiprior}\,.
+\end{align}
+Note that the intuitive spherical parameterisation \eqref{eq:spherical_parameterisation} assists with the elicitation of priors over its hyperparameters. We then assign a {\em squared exponential} covariance function for the GP over both $q$ and $r$ given by
+\begin{align}
+ K(\phi,\phi') & \defequal \N{\phi}{\phi'}{\mat{w}^\tr \mat{w}} \label{eq:BMCsqdexp}\,.
+\end{align}
 
  \begin{figure}[ht]
 \centering%
@@ -233,15 +264,15 @@ In our case, $r(\phi)$ appears in both our numerator and denominator integrals, 
 
 % NB \Phi is the actual value of the hyperparameters -- doesn't make any sense to write \Phi_i
 
-	\rput(psi){\rput(-5,-1.75){\GM@plate[plateLabelPos=tl]{3.5}{1.5}{$j \in S_R$}}}
-	\rput(psi){\rput(-5,0.25){\GM@plate[plateLabelPos=bl]{3.5}{1.5}{$i \in S_Q$}}}
+	\rput(psi){\rput(-5,-1.75){\GM@plate[plateLabelPos=tl]{3.5}{1.5}{$j \in S$}}}
+	\rput(psi){\rput(-5,0.25){\GM@plate[plateLabelPos=bl]{3.5}{1.5}{$i \in S$}}}
 	\rput(psi){\rput(-2.5,1.25){\GM@detnode[observed=true]{Qi}}}   \GM@label[angle=-90]{Qi}{$Q_i$}
 	\rput(Qi){\rput(0,-2.5){\GM@detnode[observed=true]{Ri}}}   \GM@label[angle=90]{Ri}{$R_j$}
 	\rput(Qi){\rput(-1.5,0){\GM@node[observed=true]{phiQi}}}   \GM@label[angle=180]{phiQi}{$\phi_{i}$}
 	\rput(Ri){\rput(-1.5,0){\GM@node[observed=true]{phiRi}}}   \GM@label[angle=180]{phiRi}{$\phi_{j}$}
 
-	\rput(psi){\rput(1.5,-1.75){\GM@plate[plateLabelPos=tr]{3.5}{1.5}{$j' \not\in S_R$}}}
-	\rput(psi){\rput(1.5,0.25){\GM@plate[plateLabelPos=br]{3.5}{1.5}{$i' \not\in S_Q$}}}
+	\rput(psi){\rput(1.5,-1.75){\GM@plate[plateLabelPos=tr]{3.5}{1.5}{$j' \not\in S$}}}
+	\rput(psi){\rput(1.5,0.25){\GM@plate[plateLabelPos=br]{3.5}{1.5}{$i' \not\in S$}}}
 	\rput(psi){\rput(2.5,1.25){\GM@detnode{Qj}}}   \GM@label[angle=-90]{Qj}{$Q_{i'}$}
 	\rput(Qj){\rput(0,-2.5){\GM@detnode{Rj}}}   \GM@label[angle=90]{Rj}{$R_{j'}$}
 	\rput(Qj){\rput(1.5,0){\GM@node[observed=true]{phiQ'}}}   \GM@label[angle=0]{phiQ'}{$\phi'_{i}$}
@@ -279,18 +310,12 @@ In our case, $r(\phi)$ appears in both our numerator and denominator integrals, 
 
 	\end{pspicture}%
 % NB: X is irrelevant if we are doing an expectation integral -- just drop it
-\caption{Bayesian network for marginalising hyperparameters using BMC.}
+\caption{Bayesian network for marginalising hyperparameters using Bayesian Monte Carlo. Shaded nodes are known and double-circled nodes are deterministic given all their parents. All $Q$ nodes are correlated with one another, as are all $R$ nodes, and the
+    context $I$ is correlated with all nodes.}
 \label{fig:BMC2}
 \end{figure}
 
-To this end, we apply \emph{Bayesian Monte Carlo}, and thus, assign a second GP prior to these functions \cite{BZMonteCarlo}. We can then use our computed samples $\vect{q}_s$ in order to perform regression about the value of $q(\phst)$ for any other $\phst$ of interest, and similarly for $r$. To each of our hyperparameters we assign a Gaussian prior distribution (or if our hyperparameter is restricted to the positive reals, we instead assign a Gaussian distribution to its log) given by
-\begin{align}
- \p{\phi}{I} & \defequal \N{\phi}{\vect{\nu}}{\mat{\lambda}^\tr \mat{\lambda}} \label{eq:phiprior}\,.
-\end{align}
-Note that the intuitive spherical parameterisation \eqref{eq:spherical_parameterisation} assists with the elicitation of priors over its hyperparameters. We then assign a {\em squared exponential} covariance function for the GP over both $q$ and $r$ given by
-\begin{align}
- K(\phi,\phi') & \defequal \N{\phi}{\phi'}{\mat{w}^\tr \mat{w}} \label{eq:BMCsqdexp}\,.
-\end{align}
+
 Finally, using the further definition for $i,j \in \mathcal{I}_s$, that
 \begin{equation}
 \Nt(i,j) \defequal \N{\begin{bmatrix} \vph_i \\ \vph_j \end{bmatrix}}{\begin{bmatrix} \vect{\nu} \\ \vect{\nu} \end{bmatrix}}{\begin{bmatrix}  \mat{\lambda}^\tr \mat{\lambda}+\mat{w}^\tr \mat{w} & \mat{\lambda}^\tr \mat{\lambda} \\ \mat{\lambda}^\tr \mat{\lambda} & \mat{\lambda}^\tr \mat{\lambda}+\mat{w}^\tr \mat{w}
