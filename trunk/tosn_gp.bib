@@ -1,3 +1,41 @@
+
+
+
+@article{usac,
+ author = {P. Padhy and R. K. Dash and K. Martinez and N. R. Jennings},
+ title = {A utility-based adaptive sensing and multi-hop communication protocol for wireless sensor networks},
+ journal = {ACM Transactions on Sensor Networks},
+ volume = {6},
+ number = {3},
+ year = {2010},
+ note = {In print},
+ }
+
+@article{kalman_oceanography,
+  title={Sequential data assimilation techniques in oceanography},
+  author={L. Bertino and G. Evensen and H. Vackernagel},
+  journal={International Statistical Review},
+  number={71},
+  pages={223--242},
+  year={2003},
+
+}
+
+@article{1525857,
+ author = {Kho, Johnsen and Rogers, Alex and Jennings, Nicholas R.},
+ title = {Decentralized control of adaptive sampling in wireless sensor networks},
+ journal = {ACM Transactions on Sensor Networks},
+ volume = {5},
+ number = {3},
+ year = {2009},
+ issn = {1550-4859},
+ pages = {1--35},
+ doi = {http://doi.acm.org/10.1145/1525856.1525857},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+ }
+ 
+
 @TechReport{MinTechReport,
 	title = {Multivariate Time Series Forecasting in Incomplete Environments},
 	author = {Lee, S. M. AND Roberts, S. J.},
@@ -7,11 +45,42 @@
 	year = {2008}
 }
 
-@conference{ertin2007gpm,
+@inproceedings{ecs15122,
+       booktitle = {International Conference on Information Processing in Sensor Networks},
+           month = {April},
+           title = {Towards Real-Time Information Processing of Sensor Network Data using Computationally Efficient Multi-output Gaussian Processes},
+          author = {Michael A Osborne and Alex Rogers and Sarvapali Ramchurn and Stephen J Roberts and N. R. Jennings},
+            year = {2008},
+           pages = {109--120},
+             url = {http://eprints.ecs.soton.ac.uk/15122/},
+        abstract = {In this paper, we describe a novel, computationally efficient algorithm that facilitates the autonomous acquisition of readings from sensor networks (deciding when and which sensor to acquire readings from at any time), and which can, with minimal domain knowledge, perform a range of information processing tasks including modelling the accuracy of the sensor readings, predicting the value of missing sensor readings, and predicting how the monitored environmental variables will evolve into the future. Our motivating scenario is the need to provide situational awareness support to first responders at the scene of a large scale incident, and to this end, we describe a novel iterative formulation of a multi-output Gaussian process that can build and exploit a probabilistic model of the environmental variables being measured (including the correlations and delays that exist between them). We validate our approach using data collected from a network of weather sensors located on the south coast of England.}
+}
+
+
+
+@inproceedings{changepoint,
+	title = "Sequential Bayesian prediction in the presence of changepoints",
+	author = "R. Garnett and M. A. Osborne and S. J. Roberts",
+	year = "2009",
+	booktitle = "Proceedings of the 26th International Conference on Machine Learning",
+	address = "Montreal, Canada",
+	page = "345--352"
+	}
+
+@inproceedings{sensor_rdf,
+	title = "{Sense and sens`ability: Semantic data modelling for sensor networks}",
+	author = "P. Barnaghi and S. Meissner and P. Presser and K. Moessner",
+	booktitle = "Proceedings of the ICT Mobile and Wireless Communications Summit",
+	address = "Santander, Spain",
+	year = {2009}
+}
+
+@inproceedings{ertin2007gpm,
   title={{Gaussian Process Models for Censored Sensor Readings}},
   author={Ertin, E.},
-  booktitle={Statistical Signal Processing, 2007. SSP'07. IEEE/SP 14th Workshop on},
+  booktitle={Proceedings of the 14th IEEE/SP Workshop on Statistical Signal Processing},
   pages={665--669},
+  address = {Madison, Wisconsin, USA},
   year={2007}
 }
 
@@ -613,6 +682,7 @@ editors={S. Becker, S. Thrun, and K. Obermayer},
   booktitle = {Advances in Neural Information Processing Systems 16},
 publisher={MIT Press},
  address = {Cambridge, MA},
+  pages={545--552},
   year = {2003}
 }
 
@@ -1226,7 +1296,7 @@ pages = {47-79}
 	author = {Y. W. Teh and M. Seeger and M. I. Jordan},
 	booktitle = {Proceedings of the Conference on Artificial Intelligence and Statistics},
 	year = {2005},
-	location = {Barbados},
+	address = {Barbados},
 } 
 
 @misc{WolpertInfTheory,
@@ -1310,7 +1380,7 @@ pages={181-187}
 @inproceedings{guestrin1,
  author = {A. Krause and C. Guestrin and A. Gupta and J. Kleinberg},
  title = {Near-optimal sensor placements: Maximizing information while minimizing communication cost},
- booktitle = {Proceedings of the Fifth International Conference on Information Processing in Sensor Networks (IPSN '06)},
+ booktitle = {Proceedings of the Fifth International Conference on Information Processing in Sensor Networks},
  year = {2006},
  pages = {2--10},
  address = {Nashville, Tennessee, USA}
@@ -1346,7 +1416,7 @@ pages={181-187}
   author    = {A. Deshpande and C. Guestrin and S. Madden and J. Hellerstein and W. Hong},
   title     = {Model-Driven Data Acquisition in Sensor Networks},
   booktitle = {Proceedings of the Thirtieth International Conference on Very Large Data Bases (VLDB 2004)},
-  location  = {Toronto, Canada},
+  address  = {Toronto, Canada},
   year      = {2004},
   pages 		= {588--599}
 }
