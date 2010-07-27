@@ -81,11 +81,11 @@
 % \DeclareMathOperator{\chol}{chol}
 % \DeclareMathOperator{\diag}{diag}
 
+%\newcommand{\tr}{\ensuremath{\mathsf{T}}}
 
+\markboth{M. A. Osborne et al.}{Real-Time Information Processing of Environmental Sensor Network Data}
 
-\markboth{M. A. Osborne et al.}{Bayesian Gaussian Processes for Real-Time Sensor Network Applications}
-
-\title{Bayesian Gaussian Processes for Real-Time Sensor Network Applications}
+\title{Real-Time Information Processing of Environmental Sensor Network Data using Bayesian Gaussian Processes\footnote{A preliminary version of the work presented in this paper appeared as: Osborne, M. A., Rogers, A., Ramchurn, S., Roberts, S. J. and Jennings, N. R. (2008) Towards Real-Time Information Processing of Sensor Network Data using Computationally Efficient Multi-output Gaussian Processes. In: International Conference on Information Processing in Sensor Networks (IPSN 2008), April 2008, St. Louis, Missouri, USA. pp. 109-120.}}
 
 \author{M. A. Osborne and S. J. Roberts\\
 Department of Engineering Science\\
@@ -97,40 +97,36 @@ A. Rogers and N. R. Jennings\\
 School of Electronics and Computer Science\\
 University of Southampton\\
 Southampton, SO17 1BJ, UK.\\
-{\tt{\{acr,sdr,nrj\}@ecs.soton.ac.uk}}\\
+{\tt{\{acr,nrj\}@ecs.soton.ac.uk}}\\
 }
 
 \begin{abstract}
 
-We describe a powerful algorithm to facilitate information acquisition and processing in sensor networks. Our algorithm is built upon an efficient multi-sensor Gaussian process, permitting effective inference even with minimal domain knowledge. We further introduce a formulation of Bayesian Monte Carlo to permit the principled management of the hyperparameters introduced by our flexible models. We demonstrate how our methods can be applied even in the presence of various problematic data features, including cases where our data is delayed, intermittently missing, censored and/or
-correlated. We further demonstrate a decision theoretic method of determining the optimal selection of observations in order to maintain a desired level of accuracy in our predictions. Our motivating scenario is the need to provide situational awareness support to first responders at the scene of a large scale incident. We validate our approach using data collected from networks of weather sensors.
+\noindent In this paper, we consider the problem faced by a sensor network operator who must infer, in real-time, the value of some environmental parameter that is being monitored at discrete points in space and time by a sensor network. We describe a powerful and generic approach built upon an efficient multi-output Gaussian process (GP) that facilitates this information acquisition and processing. Our algorithm allows effective inference even with minimal domain knowledge, and we further introduce a formulation of Bayesian Monte Carlo to permit the principled management of the hyperparameters introduced by our flexible models. We demonstrate how our methods can be applied even in the presence of various problematic data features, including cases where our data is delayed, intermittently missing, censored and/or correlated, and we show how a decision theoretic method can be used to determine the optimal selection of observations in order to maintain a desired level of accuracy in our inference. We validate our approach using data collected from two networks of weather sensors and show that it yields better inference performance than both conventional independent Gaussian processes and the Kalman filter. Finally, we analyse the computational complexity of our algorithm.
 \end{abstract}
 
-\category{D.3.3}{Programming Languages}{Language Constructs and Features}[data types and structures]
+\category{C.2.4}{Computer Communication Networks}{Distributed
+Systems~--~Distributed Applications}
 
-\terms{Human Factors, Languages}
+\terms{Algorithms, Design, Performance}
 
-\keywords{Gaussian processes, information processing, sensor networks}
+\keywords{Learning of models from data, Gaussian processes, information processing, adaptive sampling}
 
 \begin{document}
-
-
-%\begin{bottomstuff}
-%\end{bottomstuff}
 
 \maketitle
 
 \section{Introduction}
 
-\noindent Sensor networks have recently generated a great deal of research interest within the computer and physical sciences, and their use for the scientific monitoring of remote and hostile environments is increasingly common-place. While early sensor networks were a simple evolution of existing automated data loggers, that collected data for later off-line scientific analysis, more recent sensor networks typically make current data available through the internet, and thus, are increasingly being used for the real-time monitoring of environmental events such as floods or storm events (see \cite{esn} for a review of such environmental sensor networks).
+\noindent Sensor networks have recently generated a great deal of research interest within the computer and physical sciences, and their use for the scientific monitoring of remote and hostile environments is increasingly common-place. While early sensor networks were a simple evolution of existing automated data loggers that collected data for later off-line scientific analysis, more recent sensor networks now make their data available in real-time through the internet, and increasingly perform some form of real-time data processing or aggregation to provide useful summary information to users (see \cite{esn} for a review of such environmental sensor networks).
 
-Using real-time sensor data in this manner presents many novel challenges; not least the need for self-describing data formats, and standard protocols such that sensors can advertise their existence and capabilities to potential users. However, more significantly for us, many of the information processing tasks that would previously have been performed off-line by the owner or single user of an environmental sensor network (such as detecting faulty sensors, fusing noisy measurements from several sensors, and deciding how frequently readings should be taken), must now be performed in real-time on the mobile computers and PDAs carried by the multiple different users of the system (who may have different goals and may be using sensor readings for very different tasks). Furthermore, to support decision making, it may also be necessary to use the trends and correlations observed in previous data to predict the value of environmental parameters into the future, or to predict the reading of a sensor that is temporarily unavailable (e.g. due to network outages). Finally, we note that the open nature of the network (in which additional sensors may be deployed, and existing sensors may be removed, repositioned or updated at any time) means that these tasks may have to be performed with only limited knowledge of the precise location, reliability, and accuracy of each sensor.
+Providing real-time access to sensor data in this way presents many novel challenges; not least the need for self-describing data formats, and standard protocols such that the existence and capabilities of sensors can advertised to potential users. However, more significantly for us, many of the information processing tasks that would previously have been performed off-line by the expert owner or single user of an environmental sensor network (such as detecting faulty sensors, performing `data cleaning' to remove erroneous readings, fusing noisy measurements from several sensors, and deciding how frequently data should be collected), must now be performed autonomously in real-time. Furthermore, since such information processing is likely to be performed within centralised sensor repositories (of which the Weather Underground -- \url{http://www.wunderground.com} -- and Microsoft Research's SensorMap -- \url{http://atom.research.microsoft.com/sensormap/} -- are embryonic examples), and will be applied to open sensor networks where additional sensors may be deployed at any time, and existing sensors may be removed, repositioned or updated after deployment (such as the rooftop weather sensors within the Weather Underground), these information processing tasks may have to be performed with only limited knowledge of the precise location, reliability, and accuracy of each sensor.
 
-Now, many of the information processing tasks described above have previously been tackled by applying principled Bayesian methodologies from the academic literature of geospatial statistics and machine learning: specifically, kriging \cite{cressie} and Gaussian processes \cite{GPsBook}. However, due to the computational complexity of these approaches, to date they have largely been used off-line in order to analyse and re-design existing sensor networks (e.g. to reduce maintenance costs by removing the least informative sensors from an existing sensor network \cite{fuentes}, or to find the optimum placement of a small number of sensors, after a trial deployment of a larger number has collected data indicating their spatial correlation \cite{guestrin1}). Thus, there is a clear need for more computationally efficient algorithms, that can be deployed on the mobile computers and PDAs carried by our first responders, in order to perform this information processing in real-time.
+Now, many of the information processing tasks described above have previously been tackled by applying principled Bayesian methodologies from the academic literature of geospatial statistics and machine learning: specifically, kriging \cite{cressie} and Gaussian processes \cite{GPsBook}. However, due to the computational complexity of these approaches, to date they have largely been used off-line in order to analyse and re-design existing sensor networks (e.g. to reduce maintenance costs by removing the least informative sensors from an existing sensor network \cite{fuentes}, or to find the optimum placement of a small number of sensors, after a trial deployment of a larger number has collected data indicating their spatial correlation \cite{guestrin1}). Alternatively, they have been applied to single sensors and have ignored the correlations that exist between different sensors within the network \cite{1525857,usac}. Thus, there is a clear need for more computationally efficient algorithms, in order that this information processing can be performed at scale in real-time.
 
-Against this background, this paper describes our work developing just such an algorithm. More specifically, we present a novel iterative formulation of a Gaussian process (GP) that uses a computationally efficient implementation of {\em Bayesian Monte Carlo} to marginalise hyperparameters, efficiently re-uses previous computations by following an online update procedure as new data sequentially arrives, and uses a principled `windowing' of data in order to maintain a reasonably sized data set. We use this GP to build a probabilistic model of the environmental variables being measured by sensors within the network, tolerant to data that may be missing, delayed, censored and/or correlated. This model allows us to then perform information processing tasks including: modelling the accuracy of the sensor readings, predicting the value of missing sensor readings, predicting how the monitored environmental variables will evolve in the near future, and performing active sampling by deciding when and from which sensor to acquire readings. We validate our multi-output Gaussian process formulation using data from a network of weather sensors on the south coast of England, and we demonstrate its effectiveness by benchmarking it against conventional single-output Gaussian processes that model each sensor independently. Our results on this data set are promising, and represent a step towards the deployment of real-time algorithms that use principled machine learning techniques to autonomously acquire and process data from sensor networks.
+Against this background, this paper describes our work developing just such an algorithm. More specifically, we present a novel iterative formulation of a multi-output Gaussian process (GP) that uses a computationally efficient implementation of {\em Bayesian Monte Carlo} to marginalise hyperparameters, efficiently re-uses previous computations by following an online update procedure as new data sequentially arrives, and uses a principled `windowing' of data in order to maintain a reasonably sized data set. We use this GP to build a probabilistic model of the environmental variables being measured by sensors within the network, that is tolerant to data that may be missing, delayed, censored and/or correlated. This model allows us to then perform information processing tasks including: modelling the accuracy of the sensor readings, predicting the value of missing sensor readings, predicting how the monitored environmental variables will evolve in the near future, and performing active sampling by deciding when and from which sensor to acquire readings. We validate our multi-output Gaussian process formulation using data from two networks of weather sensors deployed on the south coast of England, and above and around the Swiss town of Davos, and we demonstrate its effectiveness by benchmarking it against conventional single-output Gaussian processes that model each sensor independently. Our results on this data set are promising, and represent a step towards the deployment of real-time algorithms that use principled machine learning techniques to autonomously acquire and process data from sensor networks.
 
-The remainder of this paper is organised as follows: Section \ref{sec_info} describes the information processing problem that we face. Section \ref{sec_gp} presents our Gaussian process formulation, and section \ref{sec_implementation} describes the sensor network used to validate this formulation. In section \ref{sec_evaluation} we present experimental results using data from this network, and in section \ref{sec_computation} we present results on the computational cost of our algorithm. Finally, related work is discussed in section \ref{sec_related}, and we conclude in section \ref{sec_conclusion}.
+The remainder of this paper is organised as follows: Section \ref{sec_info} describes the information processing problem that we face. Section \ref{sec_gp} presents our Gaussian process formulation, and section \ref{sec_implementation} describes the two sensor networks used to validate it. In section \ref{sec_evaluation} we present experimental results using data from these networks, and in section \ref{sec_computation} we present results on the computational cost of our algorithm. Finally, related work is discussed in section \ref{sec_related}, and we conclude in section \ref{sec_conclusion}.
 
 \section{The Information Processing Problem}\label{sec_info}
 
@@ -142,13 +138,13 @@ The remainder of this paper is organised as follows: Section \ref{sec_info} desc
 We then require that it uses this representation in order to:
 \begin{enumerate}
 \item Perform regression and prediction of environmental variables; that is, interpolate between sensor readings to predict variables at missing sensors (i.e. sensors that have failed or are unavailable through network outages), and perform short term prediction in order to support decision making.
-\item Perform efficient active sampling by selecting when to take a reading, and which sensor to read from, such that the minimum number of sensor readings are used to maintain the estimated uncertainty in environmental variables below a specified threshold (or similarly, to minimise uncertainty given a constrained number of sensor readings). Such constraints may reflect the computational limitations of the mobile device or PDA on which the algorithm is running, or alternatively, where the algorithm is actually controlling the network, it may reflect the constrained power consumption of the sensors themselves.
+\item Perform efficient active sampling by selecting when to take a reading, and which sensor to read from, such that the minimum number of sensor readings are used to maintain the estimated uncertainty in environmental variables below a specified threshold (or similarly, to minimise uncertainty given a constrained number of sensor readings). Such constraints may reflect the computational limitations of the processor on which the algorithm is running, or alternatively, where the algorithm is actually controlling the sensors within the network, it may reflect the constrained power consumption of the sensors themselves.
 \end{enumerate}
 More specifically, the problem that we face can be cast as a multivariate regression and decision problem in which we have $l=1\ldots L$ environmental variables $x_l \in \mathbb{R}$ of interest (such as air temperature, wind speed or direction specified at different sensor locations). We assume a set of $N$ potentially noisy sensor readings, $ \bigl\{\bigl[[l_1,t_1],z_1\bigr],\ldots,\bigl[[l_N,t_N],z_N\bigr]\bigr\}$, in which we, for example, observe the value $z_1$ for the ${l_1}^\text{th}$ variable at time $t_1$, whose true unknown value is $y_1$. Where convenient, we may group the inputs as $x=[l,t]$. Note that we do not require that all the variables are observed at the same time, nor do we impose any discretisation of our observations into regularly spaced time steps. We define our vector of observations as $\vzD\defequal[z_1,\ldots,z_N]$ of variables labelled by $\vlD\defequal[l_1,\ldots,l_N]$ at times $\vtD\defequal[t_1,\ldots,t_N]$. Given this data, we are interested in inferring the vector of values $\vyst$ for any other vector of variables labelled by $\vlst$ at times $\vtst$.
 
 \section{Gaussian Processes}\label{sec_gp}
 
-\noindent Multivariate regression problems of the form described above have often been addressed using multi-layer neural networks. However, Gaussian processes (GPs) are increasingly being applied in this area. They represent a powerful way to perform Bayesian inference about functions; we consider our environmental variables as just such a function \cite{GPsBook}. This function takes as inputs the variable label and time pair $x$ and produces as output the variable's value $y$. In this work, we will assume that our inputs are always known (e.g. our data is time-stamped), and will incorporate them into our background knowledge, or context, $I$. A GP is then a generalised multivariate Gaussian prior distribution over the (potentially infinite number of) outputs of this function:
+\noindent Multivariate regression problems of the form described above are increasingly being  addressed using Gaussian processes (GPs). These represent a powerful way to perform Bayesian inference about functions; we consider our environmental variables as just such a function \cite{GPsBook}. This function takes as inputs the variable label and time pair $x$ and produces as output the variable's value $y$. In this work, we will assume that our inputs are always known (e.g. our data is time-stamped), and will incorporate them into our background knowledge, or context, $I$. A GP is then a generalised multivariate Gaussian prior distribution over the (potentially infinite number of) outputs of this function:
 \small\begin{align}\label{eq:GPDefn}
 \p{\vy}{\vmu,\,K,\,I} & \defequal \N{\vy}{\vmu}{\mat{K}}\nonumber\\
 & \defequal\frac{1}{\sqrt{\det{2\pi\mat{K}}}}\,\exp \left(-\frac{1}{2}\,(\vy-\vmu)^\tr\,\mat{K}^{-1}\,(\vy-\vmu)\right)\,.
@@ -157,7 +153,7 @@ It is specified by prior mean and covariance functions, which generate $\vmu$ an
 %Maybe drop the following line?
  The multivariate Gaussian distribution is qualified for this role due to the fact that both its marginal probabilities and conditional probabilities are themselves Gaussian. This allows us to produce analytic posterior distributions for outputs of interest, conditioned on whatever sensor readings have been observed. Furthermore, this posterior distribution will have both a predictive mean and a variance to explicitly represent our uncertainty.
 
-While the fundamental theory of GPs is well established (see \citeN{GPsBook} for example), there is much scope for the development of computationally efficient implementations. To this end, in this work we present a novel on-line formalism of a multi-dimensional GP that allows us to model the correlations between sensor readings, and to update this model on-line as new observations are sequentially available. Space precludes a full description of this algorithm (see \cite{gp_mike} for further details), however, in the next sections we describe the covariance functions that we use to represent correlations and delays between sensor readings, the {\em Bayesian Monte Carlo} method that we use to marginalise the hyperparameters of these covariance functions, and how we efficiently update the model as new data is received, by reusing the results of previous computations, and applying a principled `windowing' of our data series.
+While the fundamental theory of GPs is well established (see \citeN{GPsBook} for example), there is much scope for the development of computationally efficient implementations especially for applications such as sensor networks which involve large numbers of sensors collecting large quantities of data timestamped data. To this end, in this work we present a novel on-line formalism of a multi-dimensional GP that allows us to model the correlations between sensor readings, and to update this model on-line as new observations are sequentially available. In the next sections we describe the covariance functions that we use to represent correlations and delays between sensor readings, the {\em Bayesian Monte Carlo} method that we use to marginalise the hyperparameters of these covariance functions, and how we efficiently update the model as new data is received, by reusing the results of previous computations, and applying a principled `windowing' of our data series.
 
 \subsection{Covariance Functions}
 
@@ -171,13 +167,13 @@ where $\vect{d}$ allows us to express the delays between environmental variables
 \begin{equation} \label{eq:spherical_parameterisation}
 K_\text{label}(l,l') \defequal  \diag(\vect{g})\,\mat{s}^\tr \mat{s}\,\diag(\vect{g})\,,
 \end{equation}
-where $\vect{g}$ gives an intuitive length scale for each environmental variable, and $\mat{s}^{T}\mat{s}$ is the correlation matrix \cite{PinheiroBates}. This allows us to represent any possible degree of correlation between our variables. As a less general alternative, we might instead use a term dependent on the spatial separation between sensors.
+where $\vect{g}$ gives an intuitive length scale for each environmental variable, and $\mat{s}^\tr\mat{s}$ is the correlation matrix \cite{PinheiroBates}. This allows us to represent any possible degree of correlation between our variables. As a less general alternative, we might instead use a term dependent on the spatial separation between sensors.
 
 Similarly, we can represent correlations over time with a wide variety of covariance functions, permitting the incorporation of what domain knowledge we have. For example, we use the additive combination of a periodic term and a non-periodic disturbance term 
 \begin{equation}
  K_\text{time}(t,t')\defequal K_{\text{time},1}(t,t')+K_{\text{time},2}(t,t')
 \end{equation}
-where we expect our variable to be well-represented by the superposition of an oscillatory and a non-oscillatory component. We represent both terms using the Mat\'{e}rn class \cite{GPsBook} (with $\nu=5/2$), given by
+where we expect our variable to be well-represented by the superposition of a periodic and a non-periodic component. We represent both terms using the Mat\'{e}rn class with $\nu=5/2$ --- a covariance function that has been shown to fit a wide range of real world data streams \cite{GPsBook} --- given by
 \begin{equation} \label{eq:matern}
 K_{\text{time},i}(t,t') \defequal h^2 \left(1+\sqrt{5}r_i+\frac{5r_i^2}{3}\right)\exp\left(-\sqrt{5}r_i\right)\,,
 \end{equation}
@@ -187,24 +183,24 @@ V([l,t],[l',t'])\defequal K([l,t],[l',t'])+ \sigma^2\,\dd{[l,t]}{[l',t']}\,,
 \end{equation}\normalsize
 where $\dd{}{}$ is the Kronecker delta and $\sigma^2$ represents the variance of additive Gaussian noise.
 
-This choice of covariance is intended to model correlated periodic variables subject to local disturbances which may themselves be correlated amongst variables. This general model describes many environmental variables that are subject to some daily cycle (e.g. the 12 hour cycle of the tide, or the 24 hour cycle seen in most temperature readings), but we reiterate that, given different domain knowledge, a variety of other covariance functions can be chosen. For example, a more suitable covariance for air temperature was found to include an additional additive covariance term over time. This allows for the possibility of both long-term drifts in temperature occurring over the course of a week, as well as more high-frequency, hourly changes.
+This choice of covariance is intended to model correlated periodic variables subject to local disturbances which may themselves be correlated amongst variables. This general model describes many environmental variables that are subject to some daily cycle (e.g. the 12 hour cycle of the tide, or the 24 hour cycle seen in most temperature readings), but we reiterate that, given different domain knowledge, a variety of other covariance functions can be chosen. For example, a more suitable covariance for air temperature was found to include an additional additive covariance term over time. This allows for the possibility of both long-term drifts in temperature occurring over the course of a week, as well as more high-frequency, hourly changes. In general, increasing the complexity of the covariance function allows us to incorporate more specific domain knowledge which will result in the Gaussian processes better fitting the observed data. However, as we shall show later, the larger number of hyperparameters that typically results from making the covariance function more complex increases the computational cost of the algorithm.
 
 Given these examples of the plethora of possibilities for adding terms to our covariance, a natural question is when to stop. The answer is, in principle, never. The `Occam's razor' action of Bayesian inference \cite{MKBook} will automatically lead us to select the simplest sub-model that still explains the data. Note this is true even if our prior is flat over the model complexity. 
 
 In practice, however, the flexibility of our model comes at the cost of the introduction of a number of hyperparameters, which we collectively denote as $\phi$. These include correlation hyperparameters (i.e. $\vect{g}$, $\mat{s}$ and $\vect{d}$), along with others such as the periods and amplitudes of each covariance term (i.e. $w$ and $h$) and the noise deviation $\sigma$. The constant prior means $\mu_1,\ldots,\mu_M$ are also included as additional hyperparameters. Taking these hyperparameters as given and using the properties of the Gaussian distribution, we are able to write our predictive equations as
 \begin{equation} \label{eq:GPMeanVar}
-\p{\vxst}{\vyD,\,\phi,\,I}=\N{\vxst}{\vect{m}_\star}{\mat{C}_\star}\,,
+\p{\vxst}{\vyD,\,\phi,\,I}=\N{\vxst}{\vect{m}_\ast}{\mat{C}_\ast}\,,
 \end{equation}
 where, collecting our inputs as $\vxst\defequal[\vlst,\vtst]$ and $\vxD\defequal[\vlD,\vtD]$, we have:
 \begin{align} 
 %\vect{m}_\star=\vmu_\phi([\vlst,\vtst])+\\\mat{K}_\phi([\vlst,\vtst],[\vlD,\vtD])\,\mat{K}_\phi([\vlD,\vtD],[\vlD,\vtD])^{-1}\,(\vyD-\vect{\mu}_\phi([\vlD,\vtD]))
-\vect{m}_\star&=\vmu_\phi(\vxst)+\mat{K}_\phi(\vxst,\vxD)\mat{V}_\phi(\vxD,\vxD)^{-1}(\vyD-\vect{\mu}_\phi(\vxD))\label{eq:GPMean}\\
-\mat{C}_\star&=\mat{K}_\phi(\vxst,\vxst)-\mat{K}_\phi(\vxst,\vxD)\mat{V}_\phi(\vxD,\vxD)^{-1}\mat{K}_\phi(\vxD,\vxst)\label{eq:GPVar}
+\vect{m}_\ast&=\vmu_\phi(\vxst)+\mat{K}_\phi(\vxst,\vxD)\mat{V}_\phi(\vxD,\vxD)^{-1}(\vyD-\vect{\mu}_\phi(\vxD))\label{eq:GPMean}\\
+\mat{C}_\ast&=\mat{K}_\phi(\vxst,\vxst)-\mat{K}_\phi(\vxst,\vxD)\mat{V}_\phi(\vxD,\vxD)^{-1}\mat{K}_\phi(\vxD,\vxst)\label{eq:GPVar}
 \end{align}
 
 \subsection{Marginalisation}
 
-\noindent Of course, it is rare that we can be certain a priori about the values of our hyperparameters. Rather than equation \eqref{eq:GPMeanVar}, we must consider
+\noindent Of course, it is rare that we can be certain a priori about the values of our hyperparameters. Rather than equation \eqref{eq:GPMeanVar}, therefore, we must consider
 \begin{equation} \label{eq:Marginalising}
  \p{\vyst}{\vzD,I}=\frac{\int\ud\phi\, \p{\vyst}{\vzD,\phi,I}\p{\vzD}{\phi,I}\p{\phi}{I}}
 {\int\ud\phi\, \p{\vzD}{\phi,I}\p{\phi}{I}}\,,
@@ -230,10 +226,10 @@ In considering any problem of inference, we need to be clear about both what inf
 \begin{align}
 &\p{\vyst}{\vect{q}_S,\,\vect{r}_S,\,\vzD,\,I} \nonumber\\  
 & = \iiint \p{\vyst}{\vect{q},\,\vect{r},\,\vzD,I}\,\p{\psi}{\vect{q},\,\vect{r},\,I}\,\p{\vect{q}}{\vect{q}_S,\,I}\,\p{\vect{r}}{\vect{r}_S,\,I}\,\ud\psi\, \ud \vect{q}\,\ud \vect{r} \nonumber\\
-& = \iiint \psi\,\dd{\psi}{\frac{\int q_\star\,r_\star\,\p{\phst}{I}\,\ud\phst}
-{\int r_\star\,\p{\phst}{I}\,\ud\phst}}\, \N{\vect{q}}{\vect{m}^{(q)}}{\mat{C}^{(q)}}\, \N{\vect{r}}{\vect{m}^{(r)}}{\mat{C}^{(r)}}\,\ud\psi\, \ud \vect{q}\,\ud \vect{r} \nonumber \\
-& = \int \frac{\int m^{(q)}_\star\,r_\star\,\p{\phst}{I}\,\ud\phst}
-{\int r_\star\,\p{\phst}{I}\,\ud\phst}\, \N{\vect{r}}{\vect{m}^{(r)}}{\mat{C}^{(r)}}\,\ud \vect{r}\,.
+& = \iiint \psi\,\dd{\psi}{\frac{\int q_\ast\,r_\ast\,\p{\phst}{I}\,\ud\phst}
+{\int r_\ast\,\p{\phst}{I}\,\ud\phst}}\, \N{\vect{q}}{\vect{m}^{(q)}}{\mat{C}^{(q)}}\, \N{\vect{r}}{\vect{m}^{(r)}}{\mat{C}^{(r)}}\,\ud\psi\, \ud \vect{q}\,\ud \vect{r} \nonumber \\
+& = \int \frac{\int m^{(q)}_\ast\,r_\ast\,\p{\phst}{I}\,\ud\phst}
+{\int r_\ast\,\p{\phst}{I}\,\ud\phst}\, \N{\vect{r}}{\vect{m}^{(r)}}{\mat{C}^{(r)}}\,\ud \vect{r}\,.
 \end{align}
 Here, unfortunately, our integration over $r$ becomes nonanalytic. However, we can employ a Laplace approximation by expanding the integrand around an assumed peak at $\vect{m}^{(r)}$. Before we can state its result, to each of our hyperparameters we assign a Gaussian prior distribution (or if our hyperparameter is restricted to the positive reals, we instead assign a Gaussian distribution to its log) given by
 \begin{align}
@@ -323,9 +319,9 @@ where the weights of this linear combination are
 and $\ones{s,1}$ is a vector containing only ones of dimensions equal to $\vect{q}_s$. With a GP on 
 $\p{\vyst}{\phi,\,I}$, each $q_i = \p{\vyst}{\vzD,\,\phi_i,\,I}$ will be a slightly different Gaussian. Hence we effectively approximate $\p{\vyst}{\vzD,I}$ as a Gaussian (process) mixture; Bayesian Monte Carlo returns a weighted sum of our predictions evaluated at a sample set of hyperparameters. The assignment of these weights is informed by the best use of all pertinent information. As such, it avoids the risk of overfitting that occurs when applying a less principled technique such as likelihood maximisation \cite{MKBook}.
 
-\subsection{Censored Observations}
+\subsection{Censored Observations}\label{sec:censored}
 
-In the work above, we have assumed that observations of our variables of interest were corrupted by simple Gaussian noise. However, in many contexts, we instead observe \emph{censored} observations. That is, we might observe that a variable was above or below certain thresholds, but no more. Examples are rich within the weather sensor networks considered. Float sensors are prone to becoming lodged on sensor posts, reporting only that the water level is below that at which it is stuck. Other observations are problematically rounded to the nearest integer -- if we observe a reading of $x$, we can say only that the true value was between $x-0.5$ and $x+0.5$. We extend our sequential algorithms to allow for such a noise model. 
+In the work above, we have assumed that observations of our variables of interest were corrupted by simple Gaussian noise. However, in many contexts, we instead observe \emph{censored} observations. That is, we might observe that a variable was above or below certain thresholds, but no more. Examples are rich within the weather sensor networks considered. Float sensors are prone to becoming lodged on sensor posts, reporting only that the water level is below that at which it is stuck. Other observations are problematically rounded to the nearest integer -- if we observe a reading of $x$, we can say only that the true value was between $x-0.5$ and $x+0.5$. We can readily extend our inference framework to allow for such a noise model. 
 
 More precisely, we assume that we actually observe bounds $\vect{b}_c$ that constrain Gaussian-noise corrupted versions $\vz_c$ of the underlying variables of interest $\vy_c$ at $\vx_c$. This framework allows for imprecise censored observations. Note that the noise variance for censored observations may differ from the noise variance associated with other observations. Conditioned on a combination of censored and un-censored observations, the distribution for our variables of interest is
 \begin{align} \label{eq:CensoredFull}
@@ -359,11 +355,11 @@ noting that a censored observation is intuitively treated as an uncensored obser
 \cov{\vyst}{\vzD,\vect{b}_c,I}=\sum_{i\in s}\rho^{(cd)}_i \Big(\mat{K}_{\phi_i}(\vxst,\vxst)-\\\mat{K}_{\phi_i}(\vxst,[\vx_c,\vxD])\mat{V}_{\phi_i}([\vx_c,\vxD],[\vx_c,\vxD])^{-1}\mat{K}_{\phi_i}([\vx_c,\vxD],\vxst)\Big)\,.
 \end{multline}
 
-We now have the problem of approximating the integrals $\int_{\vect{b}_c}\ud\vz_c\,\N{\vz_c}{\vect{m}_{c|d}}{\mat{C}_{c|d}}$ and $\int_{\vect{b}_c}\ud\vz_c\,\vz_c\, \N{\vz_c}{\vect{m}_{c|d}}{\mat{C}_{c|d}}$, which are non-analytic. Fortunately, there exists an efficient Monte Carlo algorithm \cite{genz1992ncm} for exactly this purpose. This does, however, introduce a practical limit to the number of censored observations we can simultaneously consider.
+We now have the problem of approximating the integrals $\int_{\vect{b}_c}\ud\vz_c\,\N{\vz_c}{\vect{m}_{c|d}}{\mat{C}_{c|d}}$ and $\int_{\vect{b}_c}\ud\vz_c\,\vz_c\, \N{\vz_c}{\vect{m}_{c|d}}{\mat{C}_{c|d}}$, which are non-analytic. Fortunately, there exists an efficient Monte Carlo algorithm \cite{genz1992ncm} for exactly this purpose. 
 
 \subsection{Efficient Implementation}\label{sec_efficient}
 
-\noindent The most stable implementation of equations \eqref{eq:GPMean} and \eqref{eq:GPVar} involves the use of the Cholesky decomposition, $\mat{R}(\vxD,\vxD)$, of $\mat{V}(\vxD,\vxD)$. %, such that $\mat{V}(\vxD,\vxD)=\mat{R}(\vxD,\vxD)^\tr\,\mat{R}(\vxD,\vxD)$. %We denote the Cholesky operation as $\mat{R}(\vzD,\vzD)=\chol(\mat{V}(\vzD,\vzD))$. 
+\noindent Now the implementation of equations \eqref{eq:GPMean} and \eqref{eq:GPVar} involves the inverse of a matrix, and the most stable way to implement this is through the use of the Cholesky decomposition, $\mat{R}(\vxD,\vxD)$, of $\mat{V}(\vxD,\vxD)$, rather than inverting the matrix directly. %, such that $\mat{V}(\vxD,\vxD)=\mat{R}(\vxD,\vxD)^\tr\,\mat{R}(\vxD,\vxD)$. %We denote the Cholesky operation as $\mat{R}(\vzD,\vzD)=\chol(\mat{V}(\vzD,\vzD))$. 
 %This upper triangular factor can then be used to efficiently solve our required triangular sets of linear equations.
 Performing this Cholesky decomposition represents the most computationally expensive operation we must perform; its cost scaling as $O(N^3)$ in the number of data points $N$. However, as discussed earlier, we do not intend to use our GP with a fixed set of data, but rather, within an on-line algorithm that receives new observations over time. As such, we must be able to iteratively update our predictions in as little time as possible. Fortunately, we can do so by exploiting the special structure of our problem. When we receive new data, our $\mat{V}$ matrix is changed only in the addition of a few new rows and columns. Hence most of the work that went into computing its Cholesky decomposition at the last iteration can be recycled to produce the new Cholesky decomposition (see Appendix \ref{sec:CholeskyUpdate} for details of this operation). Another problematic calculation required by \eqref{eq:GPMean} and \eqref{eq:GPVar} is the computation of the data-dependent term $\mat{R}(\vxD,\vxD)^{-1}(\vyD-\vect{\mu}(\vxD))$, in which $\vyD-\vect{\mu}(\vxD)$ is also only changing due to the addition of new rows. As such, efficient updating rules are also available for this term (see Appendix \ref{sec:DataTermUpdate}). As such, we are able to reduce the overall cost of an update from $O(N^3)$ to $O(N^2)$.
 
@@ -382,23 +378,17 @@ If we additionally consider a simple grid of samples, such that $\vph_s$ is the 
 \mat{K} \!(\vph_s,\vph_s)^{-1}\,\Nt\,&\mat{K}\!(\vph_s,\vph_s)^{-1}\nonumber\\
  = & ~\mat{K}\!(\vph_{(1),S},\vph_{(1),S})^{-1}\Nt\!(\vph_{(1),S},\vph_{(1),S})\mat{K}\!(\vph_{(1),S},\vph_{(1),S})^{-1}\nonumber\\ & \otimes \mat{K}\!(\vph_{(2),S},\vph_{(2),S})^{-1}\Nt\!(\vph_{(2),S},\vph_{(2),S})\mat{K}\!(\vph_{(2),S},\vph_{(2),S})^{-1}\nonumber\\ & \otimes \ldots
 \end{align}
-This means that we only have to perform the expensive Cholesky factorisation and multiplication with matrices whose size equals the number of samples for each hyperparameter, rather than on a matrix of size equal to the toal number of hyperparameter samples. This hence represents an effective way to avoid the `curse of dimensionality'. 
+This means that we only have to perform the expensive Cholesky factorisation and multiplication with matrices whose size equals the number of samples for each hyperparameter, rather than on a matrix of size equal to the total number of hyperparameter samples. This hence represents an effective way to avoid the `curse of dimensionality'. 
 
 Applied together, these features provide us with an efficient on-line algorithm that can be applied in real-time as data is sequentially collected from the sensor network.
-
-
 
 \subsection{Active Data Selection}
 
 \noindent Finally, in addition to the regression and prediction problem described in section \ref{sec_info}, we are able to use the same algorithm to perform active data selection. This is a decision problem concerning which observations should be taken. In this, we once again take a utility that is a function of the uncertainty in our predictions. We specify a utility of negative infinity if our uncertainty about any variable is greater than a pre-specified threshold, and a fixed negative utility is assigned as the cost of an observation (in general, this cost could be different for different sensors). Note that the uncertainty increases monotonically in the absence of new data, and shrinks in the presence of an observation. Hence our algorithm is simply induced to make a reading whenever the uncertainty grows beyond a pre-specified threshold. 
 
-Our algorithm can also decide which observation to make at this time, by determining which sensor will allow it the longest period of grace until it would be forced to observe again. This clearly minimises the number of costly observations. Note that the uncertainty of a GP, as given by \eqref{eq:GPVar}, is actually dependent only on the location of a observation, not its actual value. Hence the uncertainty we imagine remaining after taking an observation from a sensor can be quickly determined without having to speculate about what data we might possibly collect. However, this is true only so long as we do not consider the impact of new observations on our hyperparameter sample weights \eqref{eq:weights}. Our approach is to take the model, in particular the weights over samples, as fixed, and investigate only how different schedules of observations affect our predictions within it. With this proviso, we are guaranteed to maintain our uncertainty below a specified threshold, while taking as few observations as possible.
+Our algorithm can also decide which observation to make at this time, by determining which sensor will allow it the longest period of grace until it would be forced to observe again. This clearly minimises the number of costly observations. Note that the uncertainty of a GP, as given by \eqref{eq:GPVar}, is actually dependent only on the location of the observation, not its actual value. Hence the uncertainty we imagine remaining after taking an observation from a sensor can be quickly determined without having to speculate about what data we might possibly collect. However, this is true only so long as we do not consider the impact of new observations on our hyperparameter sample weights \eqref{eq:weights}. Our approach is to take the model, in particular the weights over samples, as fixed, and investigate only how different schedules of observations affect our predictions within it. With this proviso, we are guaranteed to maintain our uncertainty below a specified threshold, while taking as few observations as possible.
 
 \section{Trial Implementation}\label{sec_implementation}
-
-\subsection{Bramblemet}
-
-\noindent In order to empirically evaluate the information processing algorithm described in the previous section, we have used a network of weather sensors located on the south coast of England\footnote{The network is maintained by the Bramblemet/Chimet Support Group and funded by organisations including the Royal National Lifeboat Institution, Solent Cruising and Racing Association and Associated British Ports.}. This network consists of four sensors (named Bramblemet, Sotonmet, Cambermet and Chimet), each of which measures a range of environmental variables (including wind speed and direction, air temperature, sea temperature, and tide height) and makes up-to-date sensor measurements available through separate web pages (see \small\url{http://www.bramblemet.co.uk}\normalsize). The use of such weather sensors is attractive since they have immediate application within our motivating disaster response scenario, they exhibit challenging correlations and delays whose physical processes are well understood, and they are subject to network outages that generate instances of missing sensor readings on which we can evaluate our information processing algorithms.
 
 \begin{figure}
 \begin{center}
@@ -409,41 +399,48 @@ Our algorithm can also decide which observation to make at this time, by determi
 \end{center}
 \end{figure}
 
+\noindent In order to empirically evaluate the information processing algorithm described in the previous section, we have used data from two networks of weather sensors: the \emph{Bramblemet} weather sensor network which consists of four weather and tide sensors deployed on the south coast of England to provide real-time weather information to commercial and recreational users of the Port of Southampton (see \url{http://www.bramblemet.co.uk/}), and the \emph{Wannengrat Alpine Observatory} being built above and around the town of Davos as part of Swiss Experiment (see \url{http://www.swiss-experiment.ch/index.php/Wannengrat:Home}). The use of such weather sensors is attractive since they exhibit challenging correlations and delays whose physical processes are well understood. Hence, the relationships learned by the Gaussian process can be compared to these processes.
+
+\subsection{Bramblemet Weather Sensor Network}
+
+\noindent In more detail, the Bramblemet network consists of four sensors (named Bramblemet, Sotonmet, Cambermet and Chimet), each of which measures a range of environmental variables (including wind speed and direction, air temperature, sea temperature, and tide height) and makes up-to-date sensor measurements available through separate web pages (see figure \ref{bramble_sensor} and \small\url{http://www.bramblemet.co.uk/}\normalsize). To facilitate the autonomous collection of sensor data by our information processing algorithm, we have worked with the sensor network operators (Associated British Ports) and supplemented each sensor web page with machine readable RDF data (see figure \ref{rdf} for an example of this format -- current sensor data in this format is available at \small\url{http://www.bramblemet.co.uk/bra.rdf}\normalsize). This format is attractive as it represents a fundamental element of the semantic web, and there exist a number of software tools to parse, store and query it. More importantly, it allows the sensor data to be precisely defined through standard ontologies \cite{rdf}. For example, linking the predicate {\em geo:lat} to the ontology available at \small\url{http://www.w3.org/2003/01/geo/wgs84_pos#}\normalsize ~precisely defines the value {\em ``50.79472''} as representing a latitude in the WGS84 geodetic reference datum. While ontologies for sensor data have yet to be standardised, a number of candidates exist (see \cite{sensor_rdf} for an example based upon Sensor Web Enablement (SWE) and SensorML data component models).
+
 \begin{figure}
 \centering \rule{3.3in}{.005in}\par
 \begin{minipage}{2.6in}
+\renewcommand{\baselinestretch}{1.5}
 \begin{tabbing} \\[-3.2ex]
 llll \=llll \=llll \=llll    \kill
 \\
-\tt\scriptsize \ <\color{magenta}sit:Location\color{black}~rdf:about=\color{blue}"\&sit;bramblemet"\color{black}\\
+\tt\scriptsize \ <\color{red}sit:Location\color{black}~rdf:about=\color{blue}"\&sit;bramblemet"\color{black}\\
 \tt\scriptsize \ \ \ rdfs:label=\color{blue}"Bramble Bank"\color{black}\\
 \tt\scriptsize \ \ \ geo:lat=\color{blue}"50.79472"\color{black}\\
 \tt\scriptsize \ \ \ geo:lng=\color{blue}"-1.2875"\color{black}\\
 \tt\scriptsize \ \ \ sit:altitude=\color{blue}"1"\color{black}>\\
-\tt\scriptsize \ </\color{magenta}sit:Location\color{black}>\\
+\tt\scriptsize \ </\color{red}sit:Location\color{black}>\\
 \\
-\tt\scriptsize \ <\color{magenta}sit:Sensor\color{black}~rdf:about=\color{blue}"\&sit;bramblemet/windspeed"\color{black}\\
+\tt\scriptsize \ <\color{red}sit:Sensor\color{black}~rdf:about=\color{blue}"\&sit;bramblemet/windspeed"\color{black}\\
 \tt\scriptsize \ \ \ rdfs:label=\color{blue}"Wind speed"\color{black}>\\
-\tt\scriptsize \ \ \ <\color{magenta}sit:sensorType\color{black}~rdf:resource=\color{blue}"\&sit;windspeed"\color{black}/>\\
-\tt\scriptsize \ \ \ <\color{magenta}sit:location\color{black}~rdf:resource=\color{blue}"\&sit;bramblemet"\color{black}/>\\
-\tt\scriptsize \ </\color{magenta}sit:Sensor\color{black}>\\
+\tt\scriptsize \ \ \ <\color{red}sit:sensorType\color{black}~rdf:resource=\color{blue}"\&sit;windspeed"\color{black}/>\\
+\tt\scriptsize \ \ \ <\color{red}sit:location\color{black}~rdf:resource=\color{blue}"\&sit;bramblemet"\color{black}/>\\
+\tt\scriptsize \ </\color{red}sit:Sensor\color{black}>\\
 \\
-\tt\scriptsize \ <\color{magenta}sit:SensorType\color{black}~rdf:about=\color{blue}"\&sit;windspeed"\color{black}\\
+\tt\scriptsize \ <\color{red}sit:SensorType\color{black}~rdf:about=\color{blue}"\&sit;windspeed"\color{black}\\
 \tt\scriptsize \ \ \ rdfs:label=\color{blue}"Wind speed"\color{black}>\\
-\tt\scriptsize \ </\color{magenta}sit:SensorType\color{black}>\\
+\tt\scriptsize \ </\color{red}sit:SensorType\color{black}>\\
 \\
-\tt\scriptsize \ <\color{magenta}sit:Unit\color{black}~rdf:about=\color{blue}"\&sit;knots"\color{black}\\
+\tt\scriptsize \ <\color{red}sit:Unit\color{black}~rdf:about=\color{blue}"\&sit;knots"\color{black}\\
 \tt\scriptsize \ \ \ rdfs:label=\color{blue}"Knots"\color{black}\\
 \tt\scriptsize \ \ \ sit:unitAbbr=\color{blue}"kn"\color{black}>\\
-\tt\scriptsize \ </\color{magenta}sit:Unit\color{black}>\\
+\tt\scriptsize \ </\color{red}sit:Unit\color{black}>\\
 \\
-\tt\scriptsize \ <\color{magenta}sit:Reading\color{black}\\
+\tt\scriptsize \ <\color{red}sit:Reading\color{black}\\
 \tt\scriptsize \ \ \ rdf:about=\color{blue}"\&sit;bramblemet/windspeed/reading/1234"\color{black}\\
 \tt\scriptsize \ \ \ rdfs:value=\color{blue}"9.3"\color{black}\\
 \tt\scriptsize \ \ \ sit:datetime=\color{blue}"2007-10-25T21:55:00"\color{black}>\\
-\tt\scriptsize \ \ \ <\color{magenta}sit:sensor\color{black}~rdf:resource=\color{blue}"\&sit;bramblemet/windspeed"\color{black}/>\\
-\tt\scriptsize \ \ \ <\color{magenta}sit:unit\color{black}~rdf:resource=\color{blue}"\&sit;knots"\color{black}/>\\
-\tt\scriptsize \ </\color{magenta}sit:Reading\color{black}>\\
+\tt\scriptsize \ \ \ <\color{red}sit:sensor\color{black}~rdf:resource=\color{blue}"\&sit;bramblemet/windspeed"\color{black}/>\\
+\tt\scriptsize \ \ \ <\color{red}sit:unit\color{black}~rdf:resource=\color{blue}"\&sit;knots"\color{black}/>\\
+\tt\scriptsize \ </\color{red}sit:Reading\color{black}>\\
 \normalsize
 \end{tabbing}
 \end{minipage}\par
@@ -452,43 +449,36 @@ llll \=llll \=llll \=llll    \kill
 \label{rdf}
 \end{figure}
 
-To facilitate the autonomous collection of sensor data by our information processing algorithm, we have supplemented each sensor web page with machine readable RDF data (see figure \ref{rdf} for an example of this format -- current sensor data in this format is available at \small\url{http://www.bramblemet.co.uk/bra.rdf}\normalsize). This format is attractive as it represents a fundamental element of the semantic web, and there exist a number of software tools to parse, store and query it. More importantly, it allows the sensor data to be precisely defined through standard ontologies \cite{rdf,semantic}. For example, linking the predicate {\em geo:lat} to the ontology available at \small\url{http://www.w3.org/2003/01/geo/wgs84_pos#}\normalsize ~precisely defines the value {\em ``50.79472''} as representing a latitude in the WGS84 geodetic reference datum. While ontologies for sensor data have yet to be standardised, a number of candidates exist (see the Microsoft SenseWeb project \cite{senseweb}, for an example ontology that defines a hierarchy of sensor types).
-
-Finally, in order to visualise the sensor data and the predictions of our information processing algorithm, we have implemented a Java prototype of the software that will run on the mobile computer or PDA carried by our first responders to provide situational awareness support (see figure \ref{screen}). 
+In order to visualise the sensor data and the information processing algorithms in operation, we have implemented a server-based application that collects the RDF data from the sensors, parses and stores is using Jena (see \url{http://jena.sourceforge.net/}), and displays sensor data in tabular and graphical forms using a Google Maps interface (see figure \ref{screen}). A live version of this system is available at \url{http://www.aladdinproject.org/situation/}.
 
 \begin{figure}
 \begin{center}
-\epsfig{figure=figures/screen.eps,width=7.5cm}
-\caption{Java implementation of our information processing algorithm.}
+\epsfig{figure=figures/screen.eps,width=10.5cm}
+\caption{Server-based implementation of our information processing algorithm accessed through a web based Google Maps interface (available at \tt{http://www.aladdinproject.org/situation/}).}
 \label{screen}
 \end{center}
 \end{figure}
 
-%A Java applet demonstration version of this software is also available at \small\url{http://users.ecs.soton.ac.uk/acr/situation/demo/}\normalsize.
+The use of the Bramblemet sensor network is particularly attractive since the network is subject to real network outages that generate instances of missing sensor readings on which we can evaluate our information processing algorithms. Furthermore, by working with the sensor network operators we have been able to recover the missing data from these periods from the sensors' local caches, and thus, perform quantitative comparisons betweeen our information processing algorithm's predictions and the actual data. Furthermore, within the Bramblemet network sensors, the sensor measurements are rounded prior to their transmission over the wireless link. This results in censored observations, and thus, again by accessing the raw data from the sensors' local caches, we are also able to compare the ability of our information processing algorithms to handle these censored observations.
 
-\subsection{Wannengrat}
+However, the Bramblemet sensor network only consists of four sensors, and thus, in order to compare the performance of our approach on larger networks we turn to the Wannengrat Alpine Observatory.
 
-We additionally tested our methods on a network of weather sensors located at Wannengrat near Davos, Switzerland.
+ 
+\subsection{Wannengrat Alpine Observatory}
 
-% http://www.flickr.com/photos/plasmafish/page4/
-
-% The Wannengrat site currently employs 7 fully instrumented permanent meteorological stations across the width of the field site. These stations allow scientists at SLF to monitor the parameters in the field site and compare them to model results. Sometimes however, higher resolution measurements are necessary in order to fully understand the complex processes which are occurring. At Wannengrat, the windfield is fairly complex and the current measurements do not fully reflect what is happening. In order to understand them, SLF have employed the assistance of SwissEx collaborators SensorScope during March 2008 and have deployed a dense network of 20 SensorScope stations for a month to measure the exact processes which are occurring on a small scale.
-% 
-% As the SensorScope stations are temporary, they have been deployed on top of the snow pack and are anchored into the snow. 
-
-% SensorScope makes use of a wireless sensor network to gather environmental data, such kind of network being very close to the so-called ad hoc networks. Such networks are formed by autonomous devices, which operate in a self-organized manner and communicate together using radio interfaces. As communication ranges are limited due to physical properties of radio waves, only close hosts can directly communicate to each other. This means that multi-hop routing must be used, in which data packets are forwarded along a chain of network nodes from the source to the destination. Ad hoc and sensor networks have been have been extensively studied in the past few years due to the difficulty to provide features such as auto-organization or robust multi-hop routing.
-% 
-% Using a multi-hop WSN makes it possible for SensorScope to gather data over a wide area with only one sink and to arbitrarily modify that monitored area by moving/adding/removing stations whenever needed. Since the stations are always monitoring their network neighborhood, these changes are quickly and automatically taken into account without the need to reconfigure the network. A station may also fail, for instance due to lack of energy, without impacting on data gathering. If that station was indeed part of a route to the sink, a new route will automatically be created and used to replace the deprecated one.
-% 
-% Besides delivering gathered data to the base station, the WSN is also responsible for quite a few duties, such as time synchronization. To allow for useful exploitation of data, each measure must indeed be tagged with a timestamp, and since the stations are subject to a substantial time drift (crystals have a correct but not very high precision), it is often needed to resynchronize the stations. In SensorScope, the current time is simply regularly propagated from the sink to the network by mean of multi-hopping. The WSN used is also very energy-efficient and is able to turn off the radio (which is the biggest energy consumer in the system) most of the time, without impacting on data gathering. Thanks to this mechanism and the solar energy system, stations should theoretically never undergo a power outage. 
-
+The Wannengrat site consists of over twenty SensorScope stations, deployed above and around the Swiss town of Davos, to measure local weather conditions (see http://www.swiss-experiment.ch/index.php/Wannengrat:Sensorscopedeployment). In the case of the Wannengrat network, we simply use the data from online data repository, and have had no direct interaction with the sensor network operators.
 
 \section{Empirical Evaluation}\label{sec_evaluation}
 
-\noindent In this section we empirically evaluate our information processing algorithm on real weather data collected from the sensor networks described above. We compare our multi-output GP formalism against conventional independent GPs in which each environmental variable is modelled separately (i.e. correlations between these parameters are ignored). We also perform a comparison against a Kalman Filter \cite{Jazwinski,MinTechReport}. In particular, we compare against a
-dynamic auto-regressive model, in the form of a state-space model, giving a simple implementation of a Kalman Filter to perform sequential predictions. We also test against the na\"{i}ve algorithm that simply predicts that the variable at the next time step will be equal to that most recently observed at that sensor.
+\noindent In this section we empirically evaluate our information processing algorithm on real weather data collected from the sensor networks described above. We compare our multi-output GP formalism against a number of benchmarks:
+\begin{itemize}
+\item[\bf Conventional independent GP\normalfont] in which each environmental variable is modelled separately (i.e. correlations between these parameters are ignored). 
+\item[\bf Kalman filter\normalfont] as a dynamic auto-regressive model, in the form of a state-space model, performing sequential predictions \cite{Jazwinski,MinTechReport}. 
+\item[\bf Na\"{i}ve algorithm\normalfont] which simply predicts that the variable at the next time step will be equal to that most recently observed at that sensor.
+\end{itemize}
+The first benchmark illustrates the effectiveness of our Gaussian process formalism that expresses correlations between different sensors. The second benchmark is a state-of-the-art alternative, that has previously been used for tracking environmental sensor data \cite{kalman_oceanography}. Finally, the na\"{i}ve third benchmark provides a lower bound on the performance of a prediction algorithm.
 
-In our comparison, we present results for three different sensor types: tide height, air temperature and air pressure. Tide height was chosen since it demonstrates the ability of the GP to learn and predict periodic behaviour, and more importantly, because this particular data set contains an interesting period in which extreme weather conditions (a Northerly gale) cause both an unexpectedly low tide and a failure of the wireless connection between several of the sensor and the shore that prevents our algorithm acquiring sensor readings. Air temperature was chosen since they exhibit a very different noise and correlation structure to the tide height measurements, and thus demonstrate that the generic approach describe here is still able to perform reliable regression and prediction. Finally, air pressure was chosen as a demonstration of our effectiveness in processing censored observations, as all air pressure readings are subject to (the reasonably severe) rounding to the nearest Pascal.
+In our comparison, we present results for three different sensor types: tide height, air temperature and air pressure. Tide height was chosen since it demonstrates the ability of the GP to learn and predict periodic behaviour, and more importantly, because this particular data set contains an interesting period in which extreme weather conditions (a Northerly gale) cause both an unexpectedly low tide and a failure of the wireless connection between several of the sensor and the shore that prevents our algorithm acquiring sensor readings. Air temperature was chosen since they exhibit a very different noise and correlation structure to the tide height measurements, and thus demonstrate that the generic approach described here is still able to perform reliable regression and prediction. Finally, air pressure was chosen as a demonstration of our effectiveness in processing censored observations, as in the case of the Bramblemet sensor network, the air pressure readings are subject to (the reasonably severe) rounding to the nearest Pascal.
 
 \subsection{Regression and Prediction}
 
@@ -518,13 +508,13 @@ In our comparison, we present results for three different sensor types: tide hei
 
 \noindent Figures \ref{tide_reg} and \ref{at_reg} illustrate the efficacy of our GP formalism in this scenario. We plot the sensor readings acquired by our algorithm (shown as markers), the mean and standard deviation of the GP prediction (shown as a solid line with plus or minus a single standard deviation shown as shading), and the true fine-grained sensor readings (shown as bold) that were downloaded directly from the sensor (rather than through the web site) after the event. Note that we present just two sensors for reasons of space, but we use readings from all four sensors in order to perform inference. At time $t$, Figure \ref{tide_reg} depicts the posterior distribution of the GP, conditioned on all observations prior to and inclusive of $t$. Figure \ref{at_reg} demonstrates our algorithm's one-step ahead predictive performance, depicting the posterior distribution at time $t$ conditioned on all observations prior to and inclusive of $t-5\,\text{mins}$.
 
-We first consider figure \ref{tide_reg} showing the tide predictions, and specifically, we note the performance of our multi-output GP formalism when the Bramblemet sensor drops out at $t=1.45$ days. In this case, the independent GP quite reasonably predicts that the tide will repeat the same periodic signal it has observed in the past. However, the GP can achieve better results if it is allowed to benefit from the knowledge of the other sensors' readings during this interval of missing data. Thus, in the case of the multi-output GP, by $t=1.45$ days, the GP has successfully determined that the sensors are all very strongly correlated. Hence, when it sees an unexpected low tide in the Chimet sensor data (caused by the strong Northerly wind), these correlations lead it to infer a similarly low tide in the Bramblemet reading. Hence, the multi-output GP produces significantly more accurate predictions during the missing data interval, with associated smaller error bars.
+We first consider figure \ref{tide_reg} showing the tide predictions, and specifically, we note the performance of our multi-output GP formalism when the Bramblemet sensor drops out at $t=1.45$ days. In this case, the independent GP quite reasonably predicts that the tide will repeat the same periodic signal it has observed in the past. However, the GP can achieve better results if it is allowed to benefit from the knowledge of the other sensors' readings during this interval of missing data. Thus, in the case of the multi-output GP, by $t=1.45$ days, the GP has successfully determined that the sensors are all very strongly correlated. Hence, when it sees an unexpected low tide in the Chimet sensor data (caused by the strong Northerly wind), these correlations lead it to infer a similarly low tide in the Bramblemet reading. Hence, the multi-output GP produces significantly more accurate predictions during the missing data interval, with associated smaller error bars. Exactly the same effect is seen in the later predictions of the Chimet tide height, where the multi-output GP predictions use observations from the other sensors to better predict the high tide height at $t=2.45$ days. 
 
-Exactly the same effect is seen in the later predictions of the Chimet tide height, where the multi-output GP predictions use observations from the other sensors to better predict the high tide height at $t=2.45$ days. Furthermore, figure \ref{at_reg} shows the air temperature sensor readings where a similar effect is observed. Again, the multi-output GP is able to better predict the missing air temperature readings from the Chimet sensor having learnt the correlation with other sensors, despite the fact that the data set is much noisier and the correlations between sensors are much weaker. In this, it also demonstrates a significant improvement in performance over Kalman Filter predictions on the same data. The root mean square errors (RMSEs) are $0.7395 \,\degree\text{C}$ for our multi-output GP, $0.9159\,\degree\text{C}$ for the Kalman Filter and $3.8200\,\degree\text{C}$ for the na\"{i}ve algorithm.
+Furthermore, figure \ref{at_reg} shows the air temperature sensor readings where a similar effect is observed. Again, the multi-output GP is able to better predict the missing air temperature readings from the Chimet sensor having learnt the correlation with other sensors, despite the fact that the data set is much noisier and the correlations between sensors are much weaker. In this, it also demonstrates a significant improvement in performance over Kalman filter predictions on the same data. The root mean square errors (RMSEs) are $0.7395 \,\degree\text{C}$ for our multi-output GP, $0.9159\,\degree\text{C}$ for the Kalman filter and $3.8200\,\degree\text{C}$ for the na\"{i}ve algorithm that uses the current reading as a prediction of the next reading.
 
 \subsection{Censored Observations}
 
-\noindent Figure \ref{censored} demonstrates regression and prediction over the rounded air pressure observations from the Bramblemet censor alone. Here we can demonstrate a dramatic improvement over Kalman Filter prediction. The RMSEs are $0.3851\,\text{Pa}$ for the GP, $3.2900\,\text{Pa}$ for the Kalman Filter and $3.6068\,\text{Pa}$ for the na\"{i}ve algorithm. Both the GP and Kalman Filter have an order of $16$; that is, they store only up to the $16$ most recent observations.
+\noindent Figure \ref{censored} demonstrates regression and prediction over the rounded air pressure observations from the Bramblemet sensor alone. In this case, explicitly modelling the noise process and the rounding of data separately (as described in section \ref{sec:censored}), as opposed to attempting to capture the rounding of data directly through the noise process (the approach adopted by the Kalman filter here), leads to a dramatic improvement in prediction performance. In this case, the RMSEs are $0.3851\,\text{Pa}$ for the GP, $3.2900\,\text{Pa}$ for the Kalman filter and $3.6068\,\text{Pa}$ for the na\"{i}ve algorithm. Both the GP and Kalman filter have an order of $16$; that is, they store only up to the $16$ most recent observations. 
 
 \begin{figure}
 \begin{center}
@@ -542,8 +532,6 @@ Exactly the same effect is seen in the later predictions of the Chimet tide heig
 
 \noindent We now demonstrate our active data selection algorithm. Using the fine-grained data (downloaded directly from the sensors), we can simulate how our GP would have chosen its observations had it been in control. Results from the active selection of observations from all the four tide sensors are displayed in figure \ref{active_sampling}, and for three wind speed sensors in figure \ref{active_sampling1}. Again, these plots depict dynamic choices; at time $t$, the GP must decide when next to observe, and from which sensor, given knowledge only of the observations recorded prior to $t$, in an attempt to maintain the uncertainty in tide height below 10cm.
 
-Consider first the case shown in figure \ref{active_sampling}(a), in which separate independent GPs are used to represent each sensor. Note that a large number of observations are taken initially as the dynamics of the sensor readings are learnt, followed by a low but constant rate of observation.
-
 \begin{figure}
 \begin{center}
 \begin{tabular}{cc}
@@ -558,7 +546,7 @@ Consider first the case shown in figure \ref{active_sampling}(a), in which separ
 \end{center}
 \end{figure}
 
-In contrast, for the multi-output case shown in figure \ref{active_sampling}(b), the GP is allowed to explicitly represent correlations and delays between the sensors. This data set is notable for the slight delay of the tide heights at the Chimet and Cambermet sensors relative to the Sotonmet and Bramblemet sensors, due to the nature of tidal flows in the area. Note that after an initial learning phase as the dynamics, correlations, and delays are inferred, the GP chooses to sample predominantly from the undelayed Sotonmet and Bramblemet sensors\footnote{The dynamics of the tide height at the Sotonmet sensor are more complex than the other sensors due to the existence of a `young flood stand' and a `double high tide' in Southampton. For this reason, the GP selects Sotonmet as the most informative sensor and samples it most often.}. Despite no observations of the Chimet sensor being made within the time span plotted, the resulting predictions remain remarkably accurate. Consequently only $119$ observations are required to keep the uncertainty below the specified tolerance, whereas $358$ observations were required in the independent case. This represents another clear demonstration of how our prediction is able to benefit from the readings of multiple sensors.
+Consider first the case shown in figure \ref{active_sampling}(a), in which separate independent GPs are used to represent each sensor. Note that a large number of observations are taken initially as the dynamics of the sensor readings are learnt, followed by a low but constant rate of observation. In contrast, for the multi-output case shown in figure \ref{active_sampling}(b), the GP is allowed to explicitly represent correlations and delays between the sensors. This data set is notable for the slight delay of the tide heights at the Chimet and Cambermet sensors relative to the Sotonmet and Bramblemet sensors, due to the nature of tidal flows in the area. Note that after an initial learning phase as the dynamics, correlations, and delays are inferred, the GP chooses to sample predominantly from the undelayed Sotonmet and Bramblemet sensors\footnote{The dynamics of the tide height at the Sotonmet sensor are more complex than the other sensors due to the existence of a `young flood stand' and a `double high tide' in Southampton. For this reason, the GP selects Sotonmet as the most informative sensor and samples it most often.}. Despite no observations of the Chimet sensor being made within the time span plotted, the resulting predictions remain remarkably accurate. Consequently only $119$ observations are required to keep the uncertainty below the specified tolerance, whereas $358$ observations were required in the independent case. This represents another clear demonstration of how our prediction is able to benefit from the readings of multiple sensors.
 
 \begin{figure}
 \begin{center}
@@ -590,11 +578,11 @@ Figure \ref{active_sampling1} shows similar results for the wind speed measureme
 % The stations available were 3     4     6     8     9    10    11    12    13    14    15    16    18    19    20    29
 % Ambient temperature
 % 30-Mar-2008
-Figure \ref{active_sampling2} shows the results of an active sampling experiment over the Wannengrat data. Given the larger number of sensors in this dataset, it was impractical to use the arbitrary parameterisation  \eqref{eq:spherical_parameterisation}, which requires a hyperparameter for every distinct pair of sensors. Instead, we express the covariance between sensors as a function of the spatial distance between the known sensor locations. We used the Mat\'{e}rn covariance function \eqref{eq:matern} for this purpose, with the spatial distance being used to fill the role of $r$. This spatial distance was specified by a single isotropic scale hyperparameter, which was marginalised along with the other hyperparameters. It can be seen that there is a dramatic increase in sampling frequency coincident with the volatile fluctuations in temperature that begin at about $t=0.7$ days.
+To investigate the practicality of our algorithm on large sensor networks, we apply it to data from 16 air temperature sensors from the Wannengrat Alpine Observatory. Given the larger number of sensors in this dataset, it is impractical to use the arbitrary parameterisation presented in equation \eqref{eq:spherical_parameterisation}, which requires a hyperparameter for every distinct pair of sensors. However, we can readily express the covariance between sensors as a function of their spatial separation, and thus, we use the Mat\'{e}rn covariance function given in equation \eqref{eq:matern} for this purpose, with the spatial distance being used to fill the role of $r$. This spatial distance was specified by a single isotropic scale hyperparameter, which was marginalised along with the other hyperparameters. Figure \ref{active_sampling2} shows the detailed predictions and samples for five of the sensors, and a summary plot showing the sample times of all 16 sensors. Note that the sensor sampling rate is relatively low at first, however, as the volatile fluctuations in temperature begin to occur at about $t=0.7$ days, the sampling frequency automatically increases to ensure that the prediction uncertainty is maintained below the specified threshold.
 
 \section{Computation Time}\label{sec_computation}
 
-\noindent As described earlier, a key requirement of our algorithm is computational efficiency, in order that it can be used to represent multiple correlated sensors, and hence, used for real-time information processing. Here we consider the computation times involved in producing the results presented in the previous section. To this end, table \ref{comp_speed} tabulates the computation times required in order to update the algorithm as a new observation is received. This computation time represents the cost of updating the weights of equation \eqref{eq:muPsi} and the Cholesky factor of $\mat{V}$ (as described in section \ref{sec_efficient}). Once this calculation has been performed, making predictions at any point in time is extremely fast (it is simply a matter of adding another element in $\vzst$).
+\noindent As described earlier, a key requirement of our algorithm is computational efficiency, in order that it can be used to represent multiple correlated sensors, and hence, used for real-time information processing. Here we consider the computation times involved in producing the results presented in the previous section. To this end, table \ref{comp_speed} tabulates the computation times required in order to update the algorithm as a new observation is received. This computation time represents the cost of updating the weights of equation \eqref{eq:muPsi} and the Cholesky factor of $\mat{V}$ (as described in section \ref{sec_efficient}). Once this calculation has been performed, making predictions at any point in time is extremely fast since it is simply a matter of adding another element in $\vxst$.
 
 Note that we expect the cost of computation to grow as $O(N^2)$ in the number of stored data points. Our proposed algorithm will automatically determine the quantity of data to store in order to achieve the desired level of accuracy. In the problems we have studied, a few hundred points were typically sufficient (the largest number we required was $750$, for the multi-output wind speed data), although of course this will depend critically on the nature of the variables under consideration. Note also that the cost of computing equation \eqref{eq:KNK} will grow in the cube of the number of samples in each hyperparameter. However, we consider only a fixed set of samples in each hyperparameter, and thus, equation \eqref{eq:KNK} need only be computed once, off-line. In this case, our on-line costs are limited by the multiplication of that term by the likelihoods $\vect{r}_s$ to give the weights of equation \eqref{eq:muPsi}, and this only grows as $O(\eta^2)$. Furthermore, note that this cost is independent of how the $\eta$ samples are distributed amongst the hyperparameters.
 
@@ -614,49 +602,220 @@ Note that we expect the cost of computation to grow as $O(N^2)$ in the number of
 \end{center} 
 \end{table}
 
-The results in table \ref{comp_speed} indicate that real-time information processing is clearly feasible for the problem sizes that we have considered. In general, limiting the number of hyperparameter samples is of critical importance to achieving practical computation. As such, we should exploit any and all prior information that we possess about the system to limit the volume of hyperparameter space that our GP is required to explore online. For example, an informative prior expressing that the tidal period is likely to be around half a day will greatly reduce the number of samples required for this hyperparameter. Similarly, an offline analysis of any available training data will return sharply peaked posteriors over our hyperparameters that will further restrict the required volume to be searched over on-line. For example, we represent the tidal period hyperparameter with only a single sample on-line, so certain does training data make us of its value. Finally, a simpler and less flexible covariance model, with fewer hyperparameters, could be chosen if computational limitations become particularly severe. Note that the use of the completely general spherical parameterisation requires a correlation hyperparameter for each pair of variables, an approach which is clearly only feasible for moderate numbers of variables. A simple alternative, of course, would be to assume a covariance over variable label which is a function of the spatial separation between the sensors reading them -- sensors that are physically close are likely to be strongly correlated -- in which case we would require only enough hyperparameters to define this measure of separation. While a more complicated model will return better predictions, a simple one or two hyperparameter covariance may supply accuracy sufficient for our needs.
+The results in table \ref{comp_speed} indicate that real-time information processing is clearly feasible for the problem sizes that we have considered. In general, limiting the number of hyperparameter samples is of critical importance to achieving practical computation. As such, we should exploit any and all prior information that we possess about the system to limit the volume of hyperparameter space that our GP is required to explore online. For example, an informative prior expressing that the tidal period allow this hyperparameter to be fixed in value, hence reducing the space of hyperparameters values that must be explored. Similarly, an offline analysis of any available training data will return sharply peaked posteriors over our hyperparameters that will further restrict the required volume to be searched over on-line. For example, we represent the tidal period hyperparameter with only a single sample on-line, so certain does training data make us of its value. Finally, a simpler and less flexible covariance model, with fewer hyperparameters, could be chosen if computational limitations become particularly severe. The completely general spherical parameterisation requires a correlation hyperparameter for each pair of variables, and is clearly only feasible for moderate numbers of variables. However, as we showed with the Wannengrat active data selection results, it is equally possible to assume a covariance over variable labels which is a function of the spatial separation between the sensors reading them -- sensors that are physically close are likely to be strongly correlated -- in which case we would require only enough hyperparameters to define this measure of separation. While a more complicated model will return better predictions, a simple one or two hyperparameter covariance may supply accuracy sufficient for our needs.
 
 
 \section{Related Work}\label{sec_related}
 
-\noindent Gaussian process regression has a long history of use within geophysics and geospatial statistics (where the process is known as kriging \cite{cressie}), but has only recently been applied within sensor networks. Examples here include the use of GPs to represent spatial correlations between sensors in order that they may be positioned to maximise mutual information \cite{guestrin1}, and the use of multi-variate Gaussians to represent correlations between different sensors and sensor types for energy efficient querying of a sensor network \cite{guestrin2}. 
+\noindent Gaussian process regression has a long history of use within geophysics and geospatial statistics (where the process is known as kriging \cite{cressie}), but have only recently been applied within sensor networks. For example, they have been used to represent spatial correlations between sensors so that the near-optimal sensor placement (in terms of mutual information) can be determined, for modelling wireless propagation between sensor nodes subject to censored observations of received signal strength \cite{ertin2007gpm}, and in the form of multi-variate Gaussian distributions to represent correlations between different sensors and sensor types for energy efficient querying of a sensor network \cite{guestrin2}. They have also been used to represent temporal correlations between the readings from a single sensor in order to perform adaptive sampling --- maximising the information gain subject to a sampling constraint \cite{1525857}.
 
-Our work differs in that we use GPs to represent temporal correlations, and represent correlations and delays between sensors with additional hyperparameters. It is thus closely related to other work using GPs to perform regression over multiple responses \cite{dep_GP,latent_factor}. However, our focus is to derive a computationally efficient algorithm, and thus, we use a number of novel computational techniques to allow the re-use of previous calculations as new sensor observations are made. We additionally use a novel Bayesian Monte Carlo technique to marginalise the hyperparameters that describe the correlations and delays between sensors. Finally, we use the variance of the GP's predictions in order to perform active data selection.
+Our work differs in that we use GPs to represent temporal correlations, and represent correlations and delays between sensors with additional hyperparameters. It is thus closely related to other work using GPs to perform regression over multiple responses \cite{dep_GP,latent_factor}. However, our focus is to derive a computationally efficient algorithm, and thus, we use a number of novel computational techniques to allow the re-use of previous calculations as new sensor observations are made. We additionally use a novel Bayesian Monte Carlo technique to marginalise the hyperparameters that describe the correlations and delays between sensors. Finally, we use the variance of the GP's predictions in order to perform active data selection. Likewise, our work differs from that previously using censored sensor readings within a GP framework \cite{ertin2007gpm}, since our work proposes a principled Bayesian Monte Carlo method for adapting our models to the data, where Ertin's model assumes that the hyperparameters are known a priori, and hence, does not consider how likelihoods should be computed in this context. Furthermore, in our work, Monte Carlo techniques are also used to evaluate our other integrals, rather than taking Laplace approximations, allowing more accurate representation of the correlation amongst censored readings. 
 
-Our approach has several advantages relative to sequential state-space models \cite{Girard,Jazwinski}. Firstly, these models require the discretisation of the time input, representing a discarding of potentially valuable information. Secondly, their sequential nature means they must necessarily perform difficult iterations in order to manage missing or late data, or to produce long-range forecasts. In our GP approach, what observations we have are readily managed, regardless of when they were made. Equally, the computation cost of all our predictions is identical, irrespective of the time or place we wish to make them about. Finally, a sequential framework requires an explicit specification of a transition model. In our approach, we are able to learn a model from data even if our prior knowledge is negligible. The benefits of our approach are empirically supported by Figure \ref{fig:at_reg}.
-
-Previous work has also investigated the use of censored sensor readings within a GP framework \cite{ertin2007gpm}. Our approach differs in a number of respects. Firstly, our work proposes a principled Bayesian Monte Carlo method for adapting our models to the data. In comparison, \cite{ertin2007gpm} assumes hyperparameters are known a priori, and hence does not consider even how likelihoods should be computed in this context. Monte Carlo techniques are also used to evaluate our other integrals, rather than taking Laplace approximations, allowing more accurate representation of the correlation amongst censored readings. 
-
-%\cite{stein2005stc}
+Finally, our approach has several advantages relative to sequential state-space models such as the Kalman filter \cite{Girard,Jazwinski} which have also been applied in environmental settings for tracking sensor readings \cite{kalman_oceanography}. Firstly, these state-space models require the discretisation of the time input, representing a discarding of potentially valuable information. Secondly, their sequential nature means they must necessarily perform difficult iterations in order to manage missing or late data, or to produce long-range forecasts. In our GP approach, what observations we have are readily managed, regardless of when they were made. Equally, the computation cost of all our predictions is identical, irrespective of the time or place we wish to make them about. Finally, a sequential framework requires an explicit specification of a transition model. In our approach, we are able to learn a model from data even if our prior knowledge is negligible, and the benefits of our approach are empirically supported by the results presented in section \ref{sec_evaluation}.
 
 \section{Conclusions}\label{sec_conclusion}
 
-\noindent In this paper we addressed the need for algorithms capable of performing real-time information processing of sensor network data, and we presented a novel computationally efficient formalism of a multi-output Gaussian process. Using weather data collected from a sensor network on the south coast of the UK, we demonstrated that this formalism could effectively predict missing sensor readings caused by network outages, and could perform active sampling to maintain estimation uncertainty below a pre-specified threshold.
+\noindent In this paper we addressed the need for algorithms capable of performing real-time information processing of sensor network data, and we presented a novel computationally efficient formalism of a multi-output Gaussian process. Using weather data collected from two sensor networks, we demonstrated that this formalism allows an end-user to make effective use of sensor data even in the presence of network outages and sensor failures (recovering missing data by making predictions based on previous sensor readings and the current readings of sensors that are functioning), and to automatically determine the sampling rate of each individual sensor in order to ensure that the uncertainty in the environmental parameter being measured stays within a pre-specified limit.
 
 Our future work in this area consists of three areas. First, as a potential replacement to the fixed hyperparameter samples used in this work, we would like to investigate the use of a moving set of hyperparameter samples. In such a scheme, both the weights and positions of samples would be adjusted according to data received, and as the posterior distributions of these hyperparameters become more sharply peaked, we would reduce the number of samples to further increase the computational efficiency of our algorithm.
 
-Second, we intend to investigate the use of correlations between different sensor types (rather than between different sensors of the same type as presented here) to perform regression and prediction within our weather sensor network. In addition, we would like to use our probabilistic model to automatically detect failed or unreliable sensors within the network. 
+Second, we intend to investigate the use of correlations between different sensor types (rather than between different sensors of the same type as presented here) to perform regression and prediction within our weather sensor network. Our formalism is in no way restricted to identical sensors, and it is expected that many sensors will exhibit correlations in this setting. For example, both wind speed and wind direction, and air temperature and air pressure are likely to be exhibit correlations as weather fronts move over the sensor network.
 
-\begin{figure}
-\begin{center}
-\raisebox{0.5cm}{\epsfig{figure=figures/trimble.eps,width=3.65cm}}
-\hspace{1.0cm}
-\epsfig{figure=figures/sensor.eps,width=2cm}
-\caption{Prototype deployment of an information processing algorithm on a PDA, and a stand-alone weather sensor with which it can directly communicate through Wi-Fi.}
-\label{trimble}
-\end{center}
-\end{figure}
-
-Finally, in order to investigate the practical issues of deploying our information processing algorithm on mobile computers or PDAs that will communicate directly with the sensors constituting a pervasive network, we are developing prototype stand-alone weather sensors that will be deployed at the University of Southampton (see figure \ref{trimble}). These sensors incorporate Wi-Fi web servers and make their readings available in the same RDF format described in Section \ref{sec_implementation}.
+Finally, we would like to use the probabilistic model that the GP builds to automatically handle faulty and unreliable sensors within the network. Note that we do not wish to simply detect these faulty sensors., but would like to simultaneously perform both detection and prediction, despite the presence of these failures. Our preliminary work is this area indicates that nonstationary covariance functions that model such changes can be introduced to the formalism described here to achieve this, and have already been shown to work effectively on real-world sensor data derived sensor networks described in this paper \cite{changepoint}.
 
 \section*{Acknowledgments}
 
 \noindent This research was undertaken as part of the ALADDIN (Autonomous Learning Agents for Decentralised Data and Information Networks) project and is jointly funded by a BAE Systems and EPSRC strategic partnership (EP/C548051/1). We would like to thank B. Blaydes of the Bramblemet/Chimet Support Group, and W. Heaps of Associated British Ports (ABP) for allowing us access to the weather sensor network, hosting our RDF data on the sensor web sites, and for providing raw sensor data as required.
+ 
+%\bibliographystyle{acmtrans}
+%\bibliography{tosn_gp}
 
+\begin{thebibliography}{}
 
-  
-\bibliographystyle{acmtrans}
-\bibliography{tosn_gp}
+\bibitem[\protect\citeauthoryear{Abrahamsen}{Abrahamsen}{1997}]{Abrahamsen}
+{\sc Abrahamsen, P.} 1997.
+\newblock A review of {G}aussian random fields and correlation functions.
+\newblock Tech. Rep. 917, Norwegian Computing Center, Box 114, Blindern, N-0314
+  Oslo, Norway.
+\newblock 2nd edition.
+
+\bibitem[\protect\citeauthoryear{Barnaghi, Meissner, Presser, and
+  Moessner}{Barnaghi et~al\mbox{.}}{2009}]{sensor_rdf}
+{\sc Barnaghi, P.}, {\sc Meissner, S.}, {\sc Presser, P.}, {\sc and} {\sc
+  Moessner, K.} 2009.
+\newblock {Sense and sens'ability: Semantic data modelling for sensor
+  networks}.
+\newblock In {\em Proceedings of the ICT Mobile and Wireless Communications
+  Summit}. Santander, Spain.
+
+\bibitem[\protect\citeauthoryear{Bertino, Evensen, and Vackernagel}{Bertino
+  et~al\mbox{.}}{2003}]{kalman_oceanography}
+{\sc Bertino, L.}, {\sc Evensen, G.}, {\sc and} {\sc Vackernagel, H.} 2003.
+\newblock Sequential data assimilation techniques in oceanography.
+\newblock {\em International Statistical Review\/}~71, 223--242.
+
+\bibitem[\protect\citeauthoryear{Boyle and Frean}{Boyle and
+  Frean}{2005}]{dep_GP}
+{\sc Boyle, P.} {\sc and} {\sc Frean, M.} 2005.
+\newblock Dependent {G}aussian processes.
+\newblock In {\em Advances in Neural Information Processing Systems 17}. The
+  MIT Press, 217--224.
+
+\bibitem[\protect\citeauthoryear{Cressie}{Cressie}{1991}]{cressie}
+{\sc Cressie, N. A.~C.} 1991.
+\newblock {\em Statistics for spatial data}.
+\newblock John Wiley \& Sons.
+
+\bibitem[\protect\citeauthoryear{Deshpande, Guestrin, Madden, Hellerstein, and
+  Hong}{Deshpande et~al\mbox{.}}{2004}]{guestrin2}
+{\sc Deshpande, A.}, {\sc Guestrin, C.}, {\sc Madden, S.}, {\sc Hellerstein,
+  J.}, {\sc and} {\sc Hong, W.} 2004.
+\newblock Model-driven data acquisition in sensor networks.
+\newblock In {\em Proceedings of the Thirtieth International Conference on Very
+  Large Databases}. Toronto, Canada, 588--599.
+
+\bibitem[\protect\citeauthoryear{Ertin}{Ertin}{2007}]{ertin2007gpm}
+{\sc Ertin, E.} 2007.
+\newblock {Gaussian process models for censored sensor readings}.
+\newblock In {\em Proceedings of the Fourteenth IEEE/SP Workshop on Statistical
+  Signal Processing}. Madison, Wisconsin, USA, 665--669.
+
+\bibitem[\protect\citeauthoryear{Fuentes, Chaudhuri, and Holland}{Fuentes
+  et~al\mbox{.}}{2007}]{fuentes}
+{\sc Fuentes, M.}, {\sc Chaudhuri, A.}, {\sc and} {\sc Holland, D.~H.} 2007.
+\newblock Bayesian entropy for spatial sampling design of environmental data.
+\newblock {\em Environmental and Ecological Statistics\/}~14, 323--340.
+
+\bibitem[\protect\citeauthoryear{Garnett, Osborne, and Roberts}{Garnett
+  et~al\mbox{.}}{2009}]{changepoint}
+{\sc Garnett, R.}, {\sc Osborne, M.~A.}, {\sc and} {\sc Roberts, S.~J.} 2009.
+\newblock Sequential Bayesian prediction in the presence of changepoints.
+\newblock In {\em Proceedings of the Twenty-Sixth International Conference on Machine
+  Learning}. Montreal, Canada.
+
+\bibitem[\protect\citeauthoryear{Genz}{Genz}{1992}]{genz1992ncm}
+{\sc Genz, A.} 1992.
+\newblock {Numerical computation of multivariate normal probabilities}.
+\newblock {\em Journal of Computational and Graphical Statistics\/}~{\em
+  1,\/}~2, 141--149.
+
+\bibitem[\protect\citeauthoryear{Girard, Rasmussen, Candela, and
+  Murray-Smith}{Girard et~al\mbox{.}}{2003}]{Girard}
+{\sc Girard, A.}, {\sc Rasmussen, C.}, {\sc Candela, J.}, {\sc and} {\sc
+  Murray-Smith, R.} 2003.
+\newblock {G}aussian process priors with uncertain inputs -- application to
+  multiple-step ahead time series forecasting.
+\newblock In {\em Advances in Neural Information Processing Systems 16}. MIT
+  Press, Cambridge, MA, 545--552.
+
+\bibitem[\protect\citeauthoryear{Hart and Martinez}{Hart and
+  Martinez}{2006}]{esn}
+{\sc Hart, J.~K.} {\sc and} {\sc Martinez, K.} 2006.
+\newblock {Environmental sensor networks: A revolution in the earth system
+  science?}
+\newblock {\em {Earth-Science Reviews}\/}~{\em 78}, 177--191.
+
+\bibitem[\protect\citeauthoryear{Jazwinski}{Jazwinski}{1970}]{Jazwinski}
+{\sc Jazwinski, A.} 1970.
+\newblock {\em Stochastic processes and filtering theory}.
+\newblock Academic Press New York.
+
+\bibitem[\protect\citeauthoryear{Kho, Rogers, and Jennings}{Kho
+  et~al\mbox{.}}{2009}]{1525857}
+{\sc Kho, J.}, {\sc Rogers, A.}, {\sc and} {\sc Jennings, N.~R.} 2009.
+\newblock Decentralized control of adaptive sampling in wireless sensor
+  networks.
+\newblock {\em ACM Transactions on Sensor Networks\/}~{\em 5,\/}~3, 1--35.
+
+\bibitem[\protect\citeauthoryear{Krause, Guestrin, Gupta, and Kleinberg}{Krause
+  et~al\mbox{.}}{2006}]{guestrin1}
+{\sc Krause, A.}, {\sc Guestrin, C.}, {\sc Gupta, A.}, {\sc and} {\sc
+  Kleinberg, J.} 2006.
+\newblock Near-optimal sensor placements: Maximizing information while
+  minimizing communication cost.
+\newblock In {\em Proceedings of the Fifth International Conference on
+  Information Processing in Sensor Networks}. Nashville, Tennessee, USA, 2--10.
+
+\bibitem[\protect\citeauthoryear{Lassila and Swick}{Lassila and
+  Swick}{1999}]{rdf}
+{\sc Lassila, O.} {\sc and} {\sc Swick, R.~R.} 1999.
+\newblock Resource description framework (RDF) model and syntax specification.
+\newblock Available at
+ \url{http://www.w3.org/TR/1999/REC-rdf-syntax-19990222/}.
+
+\bibitem[\protect\citeauthoryear{Lee and Roberts}{Lee and
+  Roberts}{2008}]{MinTechReport}
+{\sc Lee, S.~M.} {\sc and} {\sc Roberts, S.~J.} 2008.
+\newblock Multivariate time series forecasting in incomplete environments.
+\newblock Tech. Rep. PARG-08-03. Available at
+  \url{www.robots.ox.ac.uk/~parg/publications.html},
+  University of Oxford.
+
+\bibitem[\protect\citeauthoryear{MacKay}{MacKay}{2002}]{MKBook}
+{\sc MacKay, D. J.~C.} 2002.
+\newblock {\em Information Theory, Inference \& Learning Algorithms}.
+\newblock {Cambridge University Press}.
+
+\bibitem[\protect\citeauthoryear{O'Hagan}{O'Hagan}{1987}]{MCUnsound}
+{\sc O'Hagan, A.} 1987.
+\newblock {Monte Carlo is fundamentally unsound}.
+\newblock {\em The Statistician\/}~{\em 36}, 247--249.
+
+\bibitem[\protect\citeauthoryear{Padhy, Dash, Martinez, and Jennings}{Padhy
+  et~al\mbox{.}}{2010}]{usac}
+{\sc Padhy, P.}, {\sc Dash, R.~K.}, {\sc Martinez, K.}, {\sc and} {\sc
+  Jennings, N.~R.} 2010.
+\newblock A utility-based adaptive sensing and multi-hop communication protocol
+  for wireless sensor networks.
+\newblock {\em ACM Transactions on Sensor Networks\/}~{\em 6,\/}~3.
+\newblock In print.
+
+\bibitem[\protect\citeauthoryear{Pinheiro and Bates}{Pinheiro and
+  Bates}{1996}]{PinheiroBates}
+{\sc Pinheiro, J.} {\sc and} {\sc Bates, D.} 1996.
+\newblock Unconstrained parameterizations for variance-covariance matrices.
+\newblock {\em Statistics and Computing\/}~{\em 6}, 289--296.
+
+\bibitem[\protect\citeauthoryear{Rasmussen and Ghahramani}{Rasmussen and
+  Ghahramani}{2003}]{BZMonteCarlo}
+{\sc Rasmussen, C.~E.} {\sc and} {\sc Ghahramani, Z.} 2003.
+\newblock {{B}ayesian Monte Carlo}.
+\newblock In {\em Advances in Neural Information Processing Systems 15}. The
+  MIT Press, 489--496.
+
+\bibitem[\protect\citeauthoryear{Rasmussen and Williams}{Rasmussen and
+  Williams}{2006}]{GPsBook}
+{\sc Rasmussen, C.~E.} {\sc and} {\sc Williams, C. K.~I.} 2006.
+\newblock {\em {G}aussian Processes for Machine Learning}.
+\newblock MIT Press.
+
+\bibitem[\protect\citeauthoryear{Sasena}{Sasena}{2002}]{Sasena}
+{\sc Sasena, M.~J.} 2002.
+\newblock {Flexibility and Efficiency Enhancements for Constrained Global
+  Design Optimization with Kriging Approximations}.
+\newblock Ph.D. thesis, University of Michigan.
+
+\bibitem[\protect\citeauthoryear{Stein}{Stein}{2005}]{stein2005stc}
+{\sc Stein, M.} 2005.
+\newblock {Space-Time Covariance Functions.}
+\newblock {\em Journal of the American Statistical Association\/}~{\em
+  100,\/}~469, 310--322.
+
+\bibitem[\protect\citeauthoryear{Teh, Seeger, and Jordan}{Teh
+  et~al\mbox{.}}{2005}]{latent_factor}
+{\sc Teh, Y.~W.}, {\sc Seeger, M.}, {\sc and} {\sc Jordan, M.~I.} 2005.
+\newblock Semiparametric latent factor models.
+\newblock In {\em Proceedings of the Conference on Artificial Intelligence and
+  Statistics}. Barbados, 333--340.
+
+\bibitem[\protect\citeauthoryear{{The MathWorks}}{{The
+  MathWorks}}{2007}]{Matlab}
+{\sc {The MathWorks}}. 2007.
+\newblock {MATLAB R2007a}.
+\newblock Natick, MA.
+
+\end{thebibliography}
+
 
 \appendix
 
