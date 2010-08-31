@@ -251,7 +251,11 @@ In considering any problem of inference, we need to be clear about both what inf
 & = \int \frac{\int m^{(q)}_\ast\,r_\ast\,\p{\phst}{I}\,\ud\phst}
 {\int r_\ast\,\p{\phst}{I}\,\ud\phst}\, \N{\vect{r}}{\vect{m}^{(r)}}{\mat{C}^{(r)}}\,\ud \vect{r}\,.
 \end{align}
-Here, unfortunately, our integration over $r$ becomes nonanalytic. However, we can employ a Laplace approximation by expanding the integrand around an assumed peak at $\vect{m}^{(r)}$. Before we can state its result, to each of our hyperparameters we assign a Gaussian prior distribution (or if our hyperparameter is restricted to the positive reals, we instead assign a Gaussian distribution to its log) given by
+Here, unfortunately, our integration over $r$ becomes nonanalytic. However, we can employ a maximum {\it a posteriori} approximation by assuming
+$$
+\N{\vect{r}}{\vect{m}^{(r)}}{\mat{C}^{(r)}} \simeq \dd{\vect{r}}{\vect{m}^{(r)}}\,.
+$$
+Essentially, we assume that our uncertainty in the likelihood function is small, hoping that our management of the uncertainty in the prediction function $q$ is sufficient. Given that we are likely to be uncertain about $r(\phi)$ at exactly the same $\phi$ we are uncertain about $q(\phi)$, those points far removed from our samples $\vphS$, this approximation is not unreasonable.  Before we can state our consequent results, to each of our hyperparameters we assign a Gaussian prior distribution (or if our hyperparameter is restricted to the positive reals, we instead assign a Gaussian distribution to its log) given by
 \begin{align}
  \p{\phi}{I} & \defequal \N{\phi}{\vect{\nu}}{\mat{\lambda}^\tr \mat{\lambda}} \label{eq:phiprior}\,.
 \end{align}
@@ -327,7 +331,7 @@ Finally, using the further definition for $i,j \in \mathcal{I}_s$, that
 \Nt(i,j) \defequal \N{\begin{bmatrix} \vph_i \\ \vph_j \end{bmatrix}}{\begin{bmatrix} \vect{\nu} \\ \vect{\nu} \end{bmatrix}}{\begin{bmatrix}  \mat{\lambda}^\tr \mat{\lambda}+\mat{w}^\tr \mat{w} & \mat{\lambda}^\tr \mat{\lambda} \\ \mat{\lambda}^\tr \mat{\lambda} & \mat{\lambda}^\tr \mat{\lambda}+\mat{w}^\tr \mat{w}
 \end{bmatrix}}\,,
 \end{equation}
-our Laplace approximation gives us
+our approximation gives us
 \begin{equation} \label{eq:muPsi}
 \p{\vyst}{\vyD,I} \simeq \vect{q}_s^\tr\,\vect{\rho}\,,
 \end{equation}
@@ -413,34 +417,38 @@ Applied together, these features provide us with an efficient on-line algorithm 
   \caption{{\sc GP-Track}$(\vx_{1:T},\vz_{1:T},\delta,${\sc Mean}$(\cdot;\cdot),${\sc Cov}$(\cdot,\cdot;\cdot),\vect{\phi}_S)$}
 \cmmnt Returns the sequential lookahead predictions made with our GP algorithm.\\
 \begin{tabular}{l r l}
-\cmmnt & $\{(\vect{x}_t, z_t)\}_{t=1}^T$: & Initial data.\\
+\cmmnt & $\{(x_t, z_t)\}_{t=1}^T$: & All data.\\
 \cmmnt & $\delta$: & Lookahead.\\
-\cmmnt & ${\sc Mean}(x,\phi)$: & Mean function ($\mu$), taking as arguments an input $x$ and hyperparameter vector $\phi$. \\
-\cmmnt & ${\sc Cov}(x,x';\phi)$: & Covariance function ($K$), taking as arguments two inputs $x$ and $x'$ and hyperparameter vector $\phi$. \\
-\cmmnt & $\vect{\phi}_S\defequal\{{\phi}_j\}_{i=1}^\eta$: & Hyperparameter samples (HSs). \\
+\cmmnt & {\sc Mean}$(x,\phi)$: & Mean function ($\mu$), taking as arguments an input $x$ and \\
+\cmmnt & &  hyperparameter vector $\phi$. \\
+\cmmnt & {\sc Cov}$(x,x';\phi)$: & Covariance function ($K$), taking as arguments two inputs\\
+\cmmnt & &  $x$ and $x'$ and hyperparameter vector $\phi$. \\
+\cmmnt & $\vect{\phi}_s\defequal\{{\phi}_j\}_{i=1}^\eta$: & Hyperparameter samples (HSs). \\
 \end{tabular}
   \begin{algorithmic}[1]
+\STATE $\vect{x}_d \leftarrow \{\}$
+\STATE $\vect{z}_d \leftarrow \{\}$
+\FOR{$i=1$ {\bfseries to} $\eta$}
+\STATE $GP[i] \leftarrow$ {\sc Initialise-GP}$\bigl(${\sc Mean}, {\sc Cov}, $\phi_i\bigr)$
+\ENDFOR
     \FOR{$t=1$ {\bfseries to} $T - \delta$}
+\STATE $(\vect{x}_d, \vect{z}_d, drop\_inds, add\_inds)  \leftarrow$ {\sc Increment-Data}$\bigl((\vect{x}_d, \vect{z}_d), (x_t, z_t),GP\bigr) $ \\\cmmnt Add new datum, and drop old data as necessary (as per Section \ref{sec_efficient}). $drop\_inds$ are the indices corresponding to the old data dropped, and $add\_inds$ correspond to the new datum. % determines how much data to drop
     \FOR{$i=1$ {\bfseries to} $\eta$}
 %     \STATE {\it model}$[j]\!\leftarrow\!$ {\sc update-model}$(${\it model}$[j], \vect{x}_t, 
 % z_t)$
-\STATE {\sc Drop-Data} % determines how much data to drop
-\STATE {\sc Downdate}
-\STATE {\sc Update}
-\STATE {\sc Make-Predictions}
-    \STATE $r_j \leftarrow$ {\sc r}$(\phi_j,\{(\vect{x}_{t'}, z_{t'})\}_{t'=1}^t)$ \cmmnt Calculate HS likelihood.
+\STATE $GP[i] \leftarrow$ {\sc Downdate-GP}$\bigl(GP[i], drop\_inds\bigr)$ \cmmnt Downdates a GP as per Section \ref{sec_efficient}, revising covariance matrix and data-dependent term to allow for dropped data for this hyperparameter sample.
+\STATE $GP[i] \leftarrow$ {\sc Update-GP}$\bigl(GP[i], (\vect{x}_d, \vect{z}_d), add\_inds\bigr)$ \cmmnt Updates a GP as per Section \ref{sec_efficient}, revising covariance matrix, data-dependent term and likelihoods to allow for added data for this hyperparameter sample.
+\STATE $(m_{t+\delta,i},C_{t+\delta,i}) \leftarrow$ {\sc Make-Predictions}$\bigl(x_{t+\delta},GP[i]\bigr)$ \cmmnt We compute the posterior mean and variances for our predictant $\vyst = y_{t+\delta}$, using \eqref{eq:GPMean} and \eqref{eq:GPVar}.
     \ENDFOR
-    \STATE $\vect{\rho} \leftarrow$ {\sc Determine-HS-Weights}$((\vect{\phi}_s,\vect{r}_s), \vect{\phi}_{c},{\theta}_m)$ \cmmnt Using \eqref{eq:a_at_sample_logL_fn}.
-    \FOR{$j=1$ {\bfseries to} $J$}
-    \STATE $q_{t+\delta,j} \leftarrow$ {\sc q}$( 
-\vect{x}_{t+\delta},\phi_j,\{(\vect{x}_{t'}, z_{t'})\}_{t'=1}^t)$ \cmmnt Calculate HS predictions; the\\ predictant locations $\vect{x}\st$ are $\vect{x}_{t+\delta}$ in this context.
-    \ENDFOR
-    \STATE {\it prediction[t]} $\leftarrow$ {\sc Combine-Predictions}$(\vect{q}_{t+\delta,s}, 
-\vect{\rho}, \vect{\rho}')$ \cmmnt Combined in a weighted mixture,.
-    \STATE {\bf Return:} {\it prediction[t]}
-    \STATE $\vect{\phi}_S \leftarrow$ {\sc Manage-HSs}$( 
+    \STATE $\vect{\rho} \leftarrow$ {\sc Determine-Weights}$(\vect{\phi}_s,GP)$ \cmmnt Using \eqref{eq:weights}.
+    \STATE $(m'_{t+\delta},C'_{t+\delta}) \leftarrow$ {\sc Combine-Predictions}$(\{\rho_i,m_{t+\delta,i},C_{t+\delta,i}\}_{i=1}^{\eta})$ \cmmnt Combined in a weighted mixture, using \eqref{eq:muPsi}.
+    \STATE {\bf Return:} $(m'_{t+\delta},C'_{t+\delta})$
+    \STATE $(\vect{\phi}_s, move\_inds) \leftarrow$ {\sc Manage-Hypersamples}$( 
 \vect{x}_{t+\delta},(\vect{\phi}_s,\vect{r}_s), 
-\vect{\phi}_{c},{\theta}_m)$ \cmmnt 
+\vect{\phi}_{c},{\theta}_m)$ \cmmnt Occasionally move hyperparameter samples (indexed by $move\_inds$, as per Section \ref{sec_efficient}.
+\FOR{$i\in move\_inds$}
+\STATE $GP[i] \leftarrow$ {\sc Overwrite-GP}$\bigl(GP[i], (\vect{x}_d, \vect{z}_d), \phi_i\bigr)$ \cmmnt Recompute all quantities for this GP in light of the new value for its hyperperparameter sample.
+\ENDFOR
     \ENDFOR
   \end{algorithmic}
   \label{alg:track}
