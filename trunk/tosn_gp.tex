@@ -413,8 +413,8 @@ In general, limiting the number of hyperparameter samples is of critical importa
 Applied together, these features provide us with an efficient on-line algorithm that can be applied in real-time as data is sequentially collected from the sensor network. Pseudo-code for our tracking algorithm is displayed in algorithm \ref{alg:track}.
 
 
-\begin{algorithm}[tb]
-  \caption{{\sc GP-Track}$(\vx_{1:T},\vz_{1:T},\delta,${\sc Mean}$(\cdot;\cdot),${\sc Cov}$(\cdot,\cdot;\cdot),\vect{\phi}_S)$}
+\begin{algorithm}[t!]
+  \caption{{\sc GP-Track}$(\vx_{1:T}, \vz_{1:T}, \delta, ${\sc Mean}$(\cdot;\cdot), ${\sc Cov}$(\cdot,\cdot;\cdot), \vect{\phi}_s)$}
 \cmmnt Returns the sequential lookahead predictions made with our GP algorithm.\\
 \begin{tabular}{l r l}
 \cmmnt & $\{(x_t, z_t)\}_{t=1}^T$: & All data.\\
@@ -423,32 +423,37 @@ Applied together, these features provide us with an efficient on-line algorithm 
 \cmmnt & &  hyperparameter vector $\phi$. \\
 \cmmnt & {\sc Cov}$(x,x';\phi)$: & Covariance function ($K$), taking as arguments two inputs\\
 \cmmnt & &  $x$ and $x'$ and hyperparameter vector $\phi$. \\
-\cmmnt & $\vect{\phi}_s\defequal\{{\phi}_j\}_{i=1}^\eta$: & Hyperparameter samples (HSs). \\
+\cmmnt & $\vect{\phi}_s\defequal\{{\phi}_j\}_{i=1}^\eta$: & Hyperparameter samples. \\
 \end{tabular}
   \begin{algorithmic}[1]
 \STATE $\vect{x}_d \leftarrow \{\}$
 \STATE $\vect{z}_d \leftarrow \{\}$
 \FOR{$i=1$ {\bfseries to} $\eta$}
-\STATE $GP[i] \leftarrow$ {\sc Initialise-GP}$\bigl(${\sc Mean}, {\sc Cov}, $\phi_i\bigr)$
+\STATE $GP[i] \leftarrow$ {\sc Initialise-GP}$\bigl(${\sc Mean}, {\sc Cov}, $\phi_i\bigr)$ \cmmnt Supply $GP[i]$ with the mean function {\sc Mean}$(x,\phi_i)$ and covariance function {\sc Cov}$(x,x';\phi_i)$.
 \ENDFOR
+\STATE $weights-term \leftarrow$ {\sc Calculate-Weights-Term}$\bigl(\vect{\phi}_s\bigr)$ \cmmnt Calculate the weights term from \eqref{eq:KNK}, 
+$\mat{K} \!(\vph_s,\vph_s)^{-1}\,\Nt\,\mat{K}\!(\vph_s,\vph_s)^{-1}$.
     \FOR{$t=1$ {\bfseries to} $T - \delta$}
-\STATE $(\vect{x}_d, \vect{z}_d, drop\_inds, add\_inds)  \leftarrow$ {\sc Increment-Data}$\bigl((\vect{x}_d, \vect{z}_d), (x_t, z_t),GP\bigr) $ \\\cmmnt Add new datum, and drop old data as necessary (as per Section \ref{sec_efficient}). $drop\_inds$ are the indices corresponding to the old data dropped, and $add\_inds$ correspond to the new datum. % determines how much data to drop
+\STATE $(\vect{x}_d, \vect{z}_d, drop-inds, add-inds)  \leftarrow$ {\sc Increment-Data}$\bigl((\vect{x}_d, \vect{z}_d), (x_t, z_t),GP\bigr) $ \\\cmmnt Add new datum (index $add-ind$), and drop old data (indices $drop-inds$) as necessary (as per Section \ref{sec_efficient}).
     \FOR{$i=1$ {\bfseries to} $\eta$}
 %     \STATE {\it model}$[j]\!\leftarrow\!$ {\sc update-model}$(${\it model}$[j], \vect{x}_t, 
 % z_t)$
-\STATE $GP[i] \leftarrow$ {\sc Downdate-GP}$\bigl(GP[i], drop\_inds\bigr)$ \cmmnt Downdates a GP as per Section \ref{sec_efficient}, revising covariance matrix and data-dependent term to allow for dropped data for this hyperparameter sample.
-\STATE $GP[i] \leftarrow$ {\sc Update-GP}$\bigl(GP[i], (\vect{x}_d, \vect{z}_d), add\_inds\bigr)$ \cmmnt Updates a GP as per Section \ref{sec_efficient}, revising covariance matrix, data-dependent term and likelihoods to allow for added data for this hyperparameter sample.
-\STATE $(m_{t+\delta,i},C_{t+\delta,i}) \leftarrow$ {\sc Make-Predictions}$\bigl(x_{t+\delta},GP[i]\bigr)$ \cmmnt We compute the posterior mean and variances for our predictant $\vyst = y_{t+\delta}$, using \eqref{eq:GPMean} and \eqref{eq:GPVar}.
+\STATE $GP[i] \leftarrow$ {\sc Downdate-GP}$\bigl(GP[i], drop-inds\bigr)$ \cmmnt Downdates a GP as per Section \ref{sec_efficient}, revising covariance matrix and data-dependent term to allow for dropped data.
+\STATE $GP[i] \leftarrow$ {\sc Update-GP}$\bigl(GP[i], (\vect{x}_d, \vect{z}_d), add-ind\bigr)$ \cmmnt Updates a GP as per Section \ref{sec_efficient}, revising covariance matrix, data-dependent term and likelihoods to allow for added data.
+\STATE $(m_{t+\delta,i},C_{t+\delta,i}) \leftarrow$ {\sc Make-Predictions}$\bigl(x_{t+\delta},GP[i]\bigr)$ \cmmnt Compute the posterior mean and variances for predictant $\vyst = y_{t+\delta}$ using \eqref{eq:GPMean} and \eqref{eq:GPVar}.
     \ENDFOR
-    \STATE $\vect{\rho} \leftarrow$ {\sc Determine-Weights}$(\vect{\phi}_s,GP)$ \cmmnt Using \eqref{eq:weights}.
-    \STATE $(m'_{t+\delta},C'_{t+\delta}) \leftarrow$ {\sc Combine-Predictions}$(\{\rho_i,m_{t+\delta,i},C_{t+\delta,i}\}_{i=1}^{\eta})$ \cmmnt Combined in a weighted mixture, using \eqref{eq:muPsi}.
+    \STATE $\vect{\rho} \leftarrow$ {\sc Determine-Weights}$(weights-term,GP)$ \cmmnt Using \eqref{eq:weights}.
+    \STATE $(m'_{t+\delta},C'_{t+\delta}) \leftarrow$ {\sc Combine-Predictions}$(\{\rho_i,m_{t+\delta,i},C_{t+\delta,i}\}_{i=1}^{\eta})$ \\\cmmnt Combined in a weighted mixture, using \eqref{eq:muPsi}.
     \STATE {\bf Return:} $(m'_{t+\delta},C'_{t+\delta})$
-    \STATE $(\vect{\phi}_s, move\_inds) \leftarrow$ {\sc Manage-Hypersamples}$( 
-\vect{x}_{t+\delta},(\vect{\phi}_s,\vect{r}_s), 
-\vect{\phi}_{c},{\theta}_m)$ \cmmnt Occasionally move hyperparameter samples (indexed by $move\_inds$, as per Section \ref{sec_efficient}.
-\FOR{$i\in move\_inds$}
-\STATE $GP[i] \leftarrow$ {\sc Overwrite-GP}$\bigl(GP[i], (\vect{x}_d, \vect{z}_d), \phi_i\bigr)$ \cmmnt Recompute all quantities for this GP in light of the new value for its hyperperparameter sample.
+\IF{{\sc Is-Time-To-Move}(t) \cmmnt Infrequent} 
+    \STATE $(\vect{\phi}_s, move-inds) \leftarrow$ {\sc Manage-Hypersamples}$( 
+GP, (\vect{\phi}_s), 
+\vect{\phi}_{c},{\theta}_m)$\\ \cmmnt Move hyperparameter samples $move-inds$, as per Section \ref{sec_efficient}.
+\FOR{$i\in move-inds$}
+\STATE $GP[i] \leftarrow$ {\sc Overwrite-GP}$\bigl(GP[i], (\vect{x}_d, \vect{z}_d), \phi_i\bigr)$ \cmmnt Recompute all quantities given the new hyperperparameter sample.
 \ENDFOR
+\STATE $weights-term \leftarrow$ {\sc Calculate-Weights-Term}$\bigl(\vect{\phi}_s\bigr)$
+\ENDIF
     \ENDFOR
   \end{algorithmic}
   \label{alg:track}
