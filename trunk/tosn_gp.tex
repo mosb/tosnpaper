@@ -9,6 +9,7 @@
 \usepackage{algorithm}
 \newcommand{\cmmnt}{// }
 
+
 % \usepackage{epsfig}
 % \usepackage{array}
 % \usepackage{amsmath,amssymb}
@@ -168,7 +169,7 @@ While the fundamental theory of GPs is well established (see \citeN{GPsBook} for
 
 Examples of covariance functions are given by the Mat\'{e}rn class \cite{GPsBook}, given by
 \begin{equation} \label{eq:Maternnu}
-K^{(\text{Mtn})}(t,t';h,w,\nu)\defequal h^2\,\frac{2^{1-\nu}}{\Gamma(\nu)}\,\biggl(\sqrt{2\nu}\,r\biggr)^\nu \mathfrak{K}_\nu\biggl(\sqrt{2\nu}\,r\biggr)
+\Kl{Mtn}(t,t';h,w,\nu)\defequal h^2\,\frac{2^{1-\nu}}{\Gamma(\nu)}\,\biggl(\sqrt{2\nu}\,r\biggr)^\nu \mathfrak{K}_\nu\biggl(\sqrt{2\nu}\,r\biggr)
 \end{equation}
 where $r = \left|\frac{t-t'}{w}\right|$, $\nu>0$ is a smoothness hyperparameter (larger $\nu$ implies smoother functions) and $\mathfrak{K}_\nu$ is the modified Bessel function. Fortunately, \eqref{eq:Maternnu} simplifies for half-integer $\nu$, to give, for the example of $\nu=\nicefrac{5}{2}$
 \begin{equation} \label{eq:matern}
@@ -176,9 +177,9 @@ where $r = \left|\frac{t-t'}{w}\right|$, $\nu>0$ is a smoothness hyperparameter 
 \end{equation}
 and its modification for periodic signals
 \begin{equation} \label{eq:permatern}
-\Kl{per-Mtn}(t,t';h,\,w,\,\nu=5/2) \defequal h^2 \left(1+\sqrt{5}r_P+\frac{5r_P^2}{3}\right)\exp\left(-\sqrt{5}r_P\right)\,,
+\Kl{per-Mtn}(t,t';h,\,w,\,\nu=5/2) \defequal h^2 \left(1+\sqrt{5}r_{\text{per}}+\frac{5r_{\text{per}}^2}{3}\right)\exp\left(-\sqrt{5}r_{\text{per}}\right)\,,
 \end{equation}
-where $r_P = \sin \pi \left|\frac{t-t'}{w}\right|$. This modification of $r$ to accommodate periodicity is readily made for other covariance functions.
+where $r_{\text{per}} = \sin \pi \left|\frac{t-t'}{w}\right|$. This modification of $r$ to accommodate periodicity is readily made for other covariance functions.
 
 There are many ways to construct a covariance over a multi-dimensional input space, such as our two-dimensional input space $x=[l,t]$. We will typically exploit the fact that a product of covariances is a covariance in its own right, and write
  $$
@@ -214,9 +215,10 @@ The flexibility of our model comes at the cost of the introduction of a number o
 where, collecting our inputs as $\vxst\defequal[\vlst,\vtst]$ and $\vxD\defequal[\vlD,\vtD]$, we have:
 \begin{align} 
 %\vect{m}_\star=\vmu_\phi([\vlst,\vtst])+\\\mat{K}_\phi([\vlst,\vtst],[\vlD,\vtD])\,\mat{K}_\phi([\vlD,\vtD],[\vlD,\vtD])^{-1}\,(\vyD-\vect{\mu}_\phi([\vlD,\vtD]))
-\vect{m}_\ast&=\vmu_\phi(\vxst)+\mat{K}_\phi(\vxst,\vxD)\mat{V}_\phi(\vxD,\vxD)^{-1}(\vyD-\vect{\mu}_\phi(\vxD))\label{eq:GPMean}\\
-\mat{C}_\ast&=\mat{K}_\phi(\vxst,\vxst)-\mat{K}_\phi(\vxst,\vxD)\mat{V}_\phi(\vxD,\vxD)^{-1}\mat{K}_\phi(\vxD,\vxst)\label{eq:GPVar}
+\vect{m}_\ast&=\vmu(\vxst;\phi)+\mat{K}(\vxst,\vxD;\phi)\mat{V}(\vxD,\vxD;\phi)^{-1}(\vyD-\vect{\mu}(\vxD;\phi))\label{eq:GPMean}\\
+\mat{C}_\ast&=\mat{K}(\vxst,\vxst;\phi)-\mat{K}(\vxst,\vxD;\phi)\mat{V}(\vxD,\vxD;\phi)^{-1}\mat{K}(\vxD,\vxst;\phi)\label{eq:GPVar}\,.
 \end{align}
+For notational convenience, we will often drop the dependence upon $\phi$ from our covariance and mean functions.
 
 \subsection{Marginalisation}
 
@@ -244,8 +246,8 @@ possesses richer structure than that previously considered using Bayesian Monte 
 % Define $\vph_{\overline{s}}\defequal\{\phi:\phi\notin \vph_s\}$ and $\vect{q}_{\overline{s}}\defequal q(\vph_{\overline{s}})$ and $\vect{r}_{\overline{s}}\defequal r(\vph_{\overline{s}})$. Of course, we know neither $\vect{q}_{\overline{s}}$ nor $\vect{r}_{\overline{s}}$, 
 In considering any problem of inference, we need to be clear about both what information we have and which uncertain variables we are interested in. In our case, both function values, $\vect{q}_s$ and $\vect{r}_s$, and their locations, $\vph_s$, represent valuable pieces of knowledge\footnote{As discussed by \cite{MCUnsound}, traditional, frequentist Monte Carlo effectively ignores the information content of $\vph_s$, leading to several unsatisfactory features.}. As with our convention above, we will take knowledge of sample locations $\vph_s$ to be implicit within $I$. We respectively define $\vect{m}^{(q)}$ and $\vect{m}^{(r)}$ as the means for $\vect{q}$ and $\vect{r}$ conditioned on $\vect{q}_s$ and $\vect{r}_s$ from \eqref{eq:GPMean}, $\mat{C}^{(r)}$ and $\mat{C}^{(r)}$ the similarly conditional covariances from \eqref{eq:GPVar}. The ultimate quantity of our interest is then
 \begin{align}
-&\p{\vyst}{\vect{q}_S,\,\vect{r}_S,\,\vzD,\,I} \nonumber\\  
-& = \iiint \p{\vyst}{\vect{q},\,\vect{r},\,\vzD,I}\,\p{\psi}{\vect{q},\,\vect{r},\,I}\,\p{\vect{q}}{\vect{q}_S,\,I}\,\p{\vect{r}}{\vect{r}_S,\,I}\,\ud\psi\, \ud \vect{q}\,\ud \vect{r} \nonumber\\
+&\p{\vyst}{\vect{q}_s,\,\vect{r}_s,\,\vzD,\,I} \nonumber\\  
+& = \iiint \p{\vyst}{\vect{q},\,\vect{r},\,\vzD,I}\,\p{\psi}{\vect{q},\,\vect{r},\,I}\,\p{\vect{q}}{\vect{q}_s,\,I}\,\p{\vect{r}}{\vect{r}_s,\,I}\,\ud\psi\, \ud \vect{q}\,\ud \vect{r} \nonumber\\
 & = \iiint \psi\,\dd{\psi}{\frac{\int q_\ast\,r_\ast\,\p{\phst}{I}\,\ud\phst}
 {\int r_\ast\,\p{\phst}{I}\,\ud\phst}}\, \N{\vect{q}}{\vect{m}^{(q)}}{\mat{C}^{(q)}}\, \N{\vect{r}}{\vect{m}^{(r)}}{\mat{C}^{(r)}}\,\ud\psi\, \ud \vect{q}\,\ud \vect{r} \nonumber \\
 & = \int \frac{\int m^{(q)}_\ast\,r_\ast\,\p{\phst}{I}\,\ud\phst}
@@ -255,7 +257,7 @@ Here, unfortunately, our integration over $r$ becomes nonanalytic. However, we c
 $$
 \N{\vect{r}}{\vect{m}^{(r)}}{\mat{C}^{(r)}} \simeq \dd{\vect{r}}{\vect{m}^{(r)}}\,.
 $$
-Essentially, we assume that our uncertainty in the likelihood function is small, hoping that our management of the uncertainty in the prediction function $q$ is sufficient. Given that we are likely to be uncertain about $r(\phi)$ at exactly the same $\phi$ we are uncertain about $q(\phi)$, those points far removed from our samples $\vphS$, this approximation is not unreasonable.  Before we can state our consequent results, to each of our hyperparameters we assign a Gaussian prior distribution (or if our hyperparameter is restricted to the positive reals, we instead assign a Gaussian distribution to its log) given by
+Essentially, we assume that our uncertainty in the likelihood function is small and trust that our more correct treatment of the uncertainty in the prediction function $q$ is sufficient. Given that we are likely to be uncertain about $r(\phi)$ at exactly the same $\phi$ we are uncertain about $q(\phi)$, those points far removed from our samples $\vphS$, this approximation is not unreasonable.  Before we can state our consequent results, to each of our hyperparameters we assign a Gaussian prior distribution (or if our hyperparameter is restricted to the positive reals, we instead assign a Gaussian distribution to its log) given by
 \begin{align}
  \p{\phi}{I} & \defequal \N{\phi}{\vect{\nu}}{\mat{\lambda}^\tr \mat{\lambda}} \label{eq:phiprior}\,.
 \end{align}
@@ -348,38 +350,44 @@ $\p{\vyst}{\phi,\,I}$, each $q_i = \p{\vyst}{\vzD,\,\phi_i,\,I}$ will be a sligh
 In the work above, we have assumed that observations of our variables of interest were corrupted by simple Gaussian noise. However, in many contexts, we instead observe \emph{censored} observations. That is, we might observe that a variable was above or below certain thresholds, but no more. Examples are rich within the weather sensor networks considered. Float sensors are prone to becoming lodged on sensor posts, reporting only that the water level is below that at which it is stuck. Other observations are problematically rounded to the nearest integer -- if we observe a reading of $x$, we can say only that the true value was between $x-0.5$ and $x+0.5$. We can readily extend our inference framework to allow for such a noise model. 
 
 More precisely, we assume that we actually observe bounds $\vect{b}_c$ that constrain Gaussian-noise corrupted versions $\vz_c$ of the underlying variables of interest $\vy_c$ at $\vx_c$. This framework allows for imprecise censored observations. Note that the noise variance for censored observations may differ from the noise variance associated with other observations. Conditioned on a combination of censored and un-censored observations, the distribution for our variables of interest is
-\begin{align} \label{eq:CensoredFull}
+\begin{align*} %\label{eq:CensoredFull}
 & \p{\vyst}{\vzD,\vect{b}_c,I}=\nonumber\\
 & \frac{\int\ud\phi\int_{\vect{b}_c}\ud\vz_c\, \p{\vyst}{\vzD,\vz_c,\phi,I}\p{\vz_c}{\vzD,\phi,I}\p{\vzD}{\phi,I}\p{\phi}{I}}
 {\int\ud\phi\int_{\vect{b}_c}\ud\vz_c\, \p{\vz_c}{\vzD,\phi,I}\p{\vzD}{\phi,I}\p{\phi}{I}}\,.
-\end{align}
-While we cannot determine this full, non-Gaussian distribution easily, we can analytically determine its mean and covariance. We use the abbreviations $\vect{m}_{c|d}\defequal\meanskinny{\vz_c}{\vzD,\phi,I}$ and $\mat{C}_{c|d}\defequal\covskinny{\vz_c}{\vzD,\phi,I}$.
+\end{align*}
+While we cannot determine this full, non-Gaussian distribution easily, we can determine the analytic forms for its mean and covariance. We use the abbreviations $\vect{m}_{c|d,\phi}\defequal\meanskinnysub{\vz}{c}{\vzD,\phi,I}$ and $\mat{C}_{c|d,\phi}\defequal\covskinnysub{\vz}{c}{\vzD,\phi,I}$.
 %and abuse notation slightly to have $\Ph{\vect{b}_c}{\vect{m}_{c|d}}{\mat{C}_{c|d}}\defequal\int_{\vect{b}_c}\ud\vz_c\,\N{\vz_c}{\vect{m}_{c|d}}{\mat{C}_{c|d}}$. 
-To reflect the influence of our censored observations, the first required modification to our previous results is to incorporate a new term into our likelihoods, 
-\begin{align}
- r^{(cd)}(\phi) %&\defequal \p{\vzD}{\phi,\,I}\int_{\vect{b}_c}\ud\vz_c\,\p{\vz_c}{\vzD,\,\phi,\,I}\nonumber\\
-  &= \N{\vzD}{\meanskinny{\vzD}{\phi,I}}{\covskinny{\vzD}{\phi,I}}\int_{\vect{b}_c}\ud\vz_c\,\N{\vz_c}{\vect{m}_{c|d}}{\mat{C}_{c|d}}\,,
-\end{align}
-giving the new weights over hyperparameter samples
+To reflect the influence of our censored observations, our likelihoods become
+\begin{align*}
+ \p{\vzD,\,\vect{b}_c}{\phi,\,I}
+  &= \N{\vzD}{\meanskinnysub{\vz}{d}{\phi,I}}{\covskinnysub{\vz}{d}{\phi,I}}\int_{\vect{b}_c}\ud\vz_c\,\N{\vz_c}{\vect{m}_{c|d,\phi}}{\mat{C}_{c|d,\phi}}\,,
+\end{align*}
+giving the new weights over hyperparameter samples $\vect{\rho}^{(cd)}$.
 %$\vect{r}^{(cd)}_s\defequal r^{(cd)}(\vphS)$
-\begin{equation}
-\vect{\rho}^{(cd)}\defequal\frac{\mat{K}(\vph_s,\vph_s)^{-1}\,\Nt\,\mat{K}(\vph_s,\vph_s)^{-1}\,\vect{r}^{(cd)}_s}
-{\ones{s,1}^\tr\,\mat{K}(\vph_s,\vph_s)^{-1}\,\Nt\,\mat{K}(\vph_s,\vph_s)^{-1}\,\vect{r}^{(cd)}_s}\,.
-\end{equation}
 We can then write our predictive mean as
-\begin{multline} \label{eq:CensoredMean}
-\mean{\vyst}{\vzD,\vect{b}_c,I}=\sum_{i\in s}\rho^{(cd)}_i\Biggl(\vmu_{\phi_i}(\vxst)+\mat{K}_{\phi_i}(\vxst,[\vx_c,\vxD])\\\mat{V}_{\phi_i}([\vx_c,\vxD],[\vx_c,\vxD])^{-1}
+% \begin{align*}
+% & \meansub{\vy}{\star}{\vzD,\vect{b}_c,I}=\nonumber\\
+% & \frac{\int\ud\phi\int_{\vect{b}_c}\ud\vz_c\, \mean{\vyst}{\vzD,\,\vz_c,\,\phi,\,I}\p{\vz_c}{\vzD,\,\phi,\,I}\p{\vzD}{\phi,\,I}\p{\phi}{I}}
+% {\int\ud\phi\int_{\vect{b}_c}\ud\vz_c\, \p{\vz_c}{\vzD,\,\phi,\,I}\p{\vzD}{\phi,\,I}\p{\phi}{I}}\,.
+% \end{align*}
+\begin{multline*} %\label{eq:CensoredMean}
+\meansub{\vy}{\star}{\vzD,\vect{b}_c,I}=\sum_{i\in s}\rho^{(cd)}_i\Biggl(\vect{\mu}(\vxst;\phi_i)+\mat{K}(\vxst,[\vx_c,\vxD];\phi_i)\\\mat{V}([\vx_c,\vxD],[\vx_c,\vxD];\phi_i)^{-1}
 \Biggl[\begin{array}{r}
-	\frac{\int_{\vect{b}_c}\ud\vz_c\,\vz_c\, \N{\vz_c}{\vect{m}_{c|d}}{\mat{C}_{c|d}}}{\int_{\vect{b}_c}\ud\vz_c\,\N{\vz_c}{\vect{m}_{c|d}}{\mat{C}_{c|d}}}-\vect{\mu}_{\phi_i}(\vx_c)\\
-       \vyD-\vect{\mu}_{\phi_i}(\vxD)
+	\frac{\int_{\vect{b}_c}\ud\vz_c\,\vz_c\, \N{\vz_c}{\vect{m}_{c|d,\phi_i}}{\mat{C}_{c|d,\phi_i}}}{\int_{\vect{b}_c}\ud\vz_c\,\N{\vz_c}{\vect{m}_{c|d,\phi_i}}{\mat{C}_{c|d,\phi_i}}}-\vect{\mu}(\vy_c;\phi_i)\\
+       \vzD-\vect{\mu}(\vxD;\phi_i)
       \end{array}\Biggr]\Biggr)\,,
-\end{multline}
+\end{multline*}
 noting that a censored observation is intuitively treated as an uncensored observation equal to the conditional mean of the GP over the bounded region. We have also the predictive covariance
-\begin{multline} \label{eq:CensoredCov}
-\cov{\vyst}{\vzD,\vect{b}_c,I}=\sum_{i\in s}\rho^{(cd)}_i \Big(\mat{K}_{\phi_i}(\vxst,\vxst)-\\\mat{K}_{\phi_i}(\vxst,[\vx_c,\vxD])\mat{V}_{\phi_i}([\vx_c,\vxD],[\vx_c,\vxD])^{-1}\mat{K}_{\phi_i}([\vx_c,\vxD],\vxst)\Big)\,.
-\end{multline}
+\begin{multline*} %\label{eq:CensoredCov}
+\covsub{\vy}{st}{\vzD,\vect{b}_c,I}=\sum_{i\in s}\rho^{(cd)}_i \Big(\mat{K}(\vxst,\vxst;\phi_i)-\\\mat{K}(\vxst,[\vx_c,\vxD];\phi_i)\mat{V}([\vx_c,\vxD],[\vx_c,\vxD];\phi_i)^{-1}\mat{K}([\vx_c,\vxD],\vyst;\phi_i)\Big)\,.
+\end{multline*}
 
-We now have the problem of approximating the integrals $\int_{\vect{b}_c}\ud\vz_c\,\N{\vz_c}{\vect{m}_{c|d}}{\mat{C}_{c|d}}$ and $\int_{\vect{b}_c}\ud\vz_c\,\vz_c\, \N{\vz_c}{\vect{m}_{c|d}}{\mat{C}_{c|d}}$, which are non-analytic. Fortunately, there exists an efficient Monte Carlo algorithm \cite{genz1992ncm} for exactly this purpose. 
+We now have the problem of determining the integrals 
+\begin{equation*} %\label{eq:censored_bad_integrals}
+\int_{\vect{b}_c}\ud\vz_c\,\N{\vz_c}{\vect{m}_{c|d,\phi}}{\mat{C}_{c|d,\phi}} \qquad \text{and} \qquad
+\int_{\vect{b}_c}\ud\vz_c\,\vz_c\, \N{\vz_c}{\vect{m}_{c|d,\phi}}{\mat{C}_{c|d,\phi}}\,,
+\end{equation*}
+which are non-analytic. With only a single censored observation, we can use standard functions for such integrals. Assuming that our censored observations are independent of one another (conditioned on the other observations $\vzD$) would also allow us the use of such results, but is usually an unreasonable approximation. Fortunately, there also exists an efficient Monte Carlo algorithm \cite{genz1992ncm} for the purpose of resolving such integrals. It is this algorithm that we will choose for the appropriate empirical tests to follow.
 
 \subsection{Efficient Implementation}\label{sec_efficient}
 
@@ -389,13 +397,13 @@ Performing this Cholesky decomposition represents the most computationally expen
 
 However, we can further increase the efficiency of our updates by making a judicious assumption. In particular, experience shows that our GP requires only a very small number of recent observations in order to produce good estimates. Indeed, most covariance functions have very light tails such that only points within a few multiples of the time scale are at all relevant to the point of interest. Hence we seek sensible ways of discarding information once it has been rendered `stale', to reduce both memory usage and computational requirements.
 
-One pre-eminently reasonable measure of the value of data is the uncertainty we still possess after learning it. In particular, we are interested in how uncertain we are about $\vxst$; as given by the covariance of our Gaussian mixture equation \eqref{eq:muPsi}. Our approach is thus to drop our oldest data points (those which our covariance deems least relevant to the current predictant) until this uncertainty exceeds some predetermined threshold. 
+One pre-eminently reasonable measure of the value of data is the uncertainty we still possess after learning it. In particular, we are interested in how uncertain we are about $\vxst$; as given by the covariance of our Gaussian mixture equation \eqref{eq:muPsi}. Our approach is thus to drop our oldest data points (those which our covariances typically deem least relevant to the current predictant) until this uncertainty exceeds some predetermined threshold. 
 
 Just as we were able to efficiently update our Cholesky factor upon the receipt of new data, so we can downdate to remove data (see Appendix \ref{sec:CholeskyDowndate} for the details of this operation). This allows us to rapidly remove unwanted data, compute our uncertainty about $\vyst$, and then repeat as required; the GP will retain only as much data as necessary to achieve a pre-specified degree of accuracy. This allows a principled way of `windowing' our data series.
 
 Finally, we turn to the implementation of our marginalisation procedure. Essentially, our approach is to maintain an ensemble of GPs, one for each hyperparameter sample, each of which we update and downdate according to the proposals above. Note that the computations for each hyperparameter sample can be treated independently, lending our algorithm to parallelisation. It would also be interesting to investigate the use of graphics processing units (GPUs) to effect such parallelisation.
 
-The predictions of each sample are then weighted and combined according to equation \eqref{eq:muPsi}. Note that the only computations whose computational cost grows at greater than a quadratic rate in the number of samples, $\eta$, are the Cholesky decomposition and multiplication of covariance matrices in equation \eqref{eq:muPsi}, and these scale rather poorly as $O(\eta^3)$. To address this problem, we take our Gaussian priors for each different hyperparameter $\phi_{(e)} \in \phi$ as independent. We further take a covariance structure given by the product of terms over each hyperparameter, the common \emph{product correlation rule} (e.g. \citeN{Sasena})
+The predictions of each sample are then weighted and combined according to equation \eqref{eq:muPsi}. Note that the only computations whose computational cost grows at greater than a quadratic rate in the number of samples, $\eta$, are the Cholesky decomposition and multiplication of covariance matrices in equation \eqref{eq:weights}, and these scale rather poorly as $O(\eta^3)$. To address this problem, we take our Gaussian priors for each different hyperparameter $\phi_{(e)} \in \phi$ as independent. We further take a covariance structure given by the product of terms over each hyperparameter, the common \emph{product correlation rule} (e.g. \citeN{Sasena})
 \begin{equation}
  K(\phi,\,\phi')=\prod_e K_e\Big(\phi_{(e)},\,\phi'_{(e)}\Big)\,.
 \end{equation}
@@ -406,15 +414,15 @@ If we additionally consider a simple grid of samples, such that $\vph_s$ is the 
 \end{align}
 This means that we only have to perform the expensive Cholesky factorisation and multiplication with matrices whose size equals the number of samples for each hyperparameter, rather than on a matrix of size equal to the total number of hyperparameter samples. This hence represents an effective way to avoid the `curse of dimensionality'. 
 
-Note that we can also leverage some of the benefits of maximum likelihood to our own advantage. In particular, given an initial grid of samples, we can perform regular updates to their positions by performing single-stage gradient ascent. That is, the value of $\phi_{(e),i}$, the $i$th sample in the $e$th hyperparameter, is adjusted according to the average derivative with respect to $\phi_{(e),i}$ of the likelihood of all samples that share $\phi_{(e),i}$. Shifting a hyperparameter sample does, however, require the fresh Cholesky decomposition of the covariance matrix associated with that sample. As such, we perform such sample shifting relatively rarely. 
+Note that we can also leverage some of the benefits of maximum likelihood to our own advantage. In particular, given an initial grid of samples, we can perform regular updates to their positions by performing single-stage gradient ascent. That is, the value of $\phi_{(e),i}$, the $i$th sample in the $e$th hyperparameter, is adjusted according to the average derivative with respect to $\phi_{(e),i}$ of the likelihood of all samples that share $\phi_{(e),i}$. Shifting a hyperparameter sample does, however, require the fresh Cholesky decomposition of the covariance matrix associated with that sample, along with the re-computation of the data-dependent term, likelihood and the weights term \eqref{eq:KNK}. As such, we perform such sample shifting relatively rarely to avoid too excessive a computational burden.
 
 In general, limiting the number of hyperparameter samples is of critical importance to achieving practical computation. As such, we should exploit any and all prior information that we possess about the system to limit the volume of hyperparameter space that our GP is required to explore online. For example, an informative prior expressing that a tidal period is likely to be around half a day will greatly reduce the number of samples required for this hyperparameter. Similarly, an offline analysis of any available training data will return sharply peaked posteriors over our hyperparameters that will further restrict the required volume to be searched over on-line. For example, we represent the tidal period hyperparameter with only a single sample on-line, so certain does training data make us of its value. Finally, a simpler and less flexible covariance model, with fewer hyperparameters, could be chosen if computational limitations become particularly severe. 
 
 Applied together, these features provide us with an efficient on-line algorithm that can be applied in real-time as data is sequentially collected from the sensor network. Pseudo-code for our tracking algorithm is displayed in algorithm \ref{alg:track}.
 
 
-\begin{algorithm}[t!]
-  \caption{{\sc GP-Track}$(\vx_{1:T}, \vz_{1:T}, \delta, ${\sc Mean}$(\cdot;\cdot), ${\sc Cov}$(\cdot,\cdot;\cdot), \vect{\phi}_s)$}
+\begin{algorithm}[htb!]
+  \caption{{\sc GP-Track}$(\vx_{1:T}, \vz_{1:T}, \delta, $ {\sc Mean}$(\cdot;\cdot), $ {\sc Cov}$(\cdot,\cdot;\cdot), \vect{\phi}_s)$}
 \cmmnt Returns the sequential lookahead predictions made with our GP algorithm.\\
 \begin{tabular}{l r l}
 \cmmnt & $\{(x_t, z_t)\}_{t=1}^T$: & All data.\\
@@ -431,28 +439,27 @@ Applied together, these features provide us with an efficient on-line algorithm 
 \FOR{$i=1$ {\bfseries to} $\eta$}
 \STATE $GP[i] \leftarrow$ {\sc Initialise-GP}$\bigl(${\sc Mean}, {\sc Cov}, $\phi_i\bigr)$ \cmmnt Supply $GP[i]$ with the mean function {\sc Mean}$(x,\phi_i)$ and covariance function {\sc Cov}$(x,x';\phi_i)$.
 \ENDFOR
-\STATE $weights-term \leftarrow$ {\sc Calculate-Weights-Term}$\bigl(\vect{\phi}_s\bigr)$ \cmmnt Calculate the weights term from \eqref{eq:KNK}, 
+\STATE {\it weights-term} $\leftarrow$ {\sc Calculate-Weights-Term}$\bigl(\vect{\phi}_s\bigr)$ \cmmnt Calculate the weights term from \eqref{eq:KNK}, 
 $\mat{K} \!(\vph_s,\vph_s)^{-1}\,\Nt\,\mat{K}\!(\vph_s,\vph_s)^{-1}$.
     \FOR{$t=1$ {\bfseries to} $T - \delta$}
-\STATE $(\vect{x}_d, \vect{z}_d, drop-inds, add-inds)  \leftarrow$ {\sc Increment-Data}$\bigl((\vect{x}_d, \vect{z}_d), (x_t, z_t),GP\bigr) $ \\\cmmnt Add new datum (index $add-ind$), and drop old data (indices $drop-inds$) as necessary (as per Section \ref{sec_efficient}).
+\STATE $(\vect{x}_d, \vect{z}_d, $ {\it drop-inds, add-ind}$)  \leftarrow$ {\sc Increment-Data}$\bigl((\vect{x}_d, \vect{z}_d), (x_t, z_t),GP\bigr) $ \\\cmmnt Add new datum (index {\it add-ind}), and drop old data (indices {\it drop-inds}) as necessary (as per Section \ref{sec_efficient}).
     \FOR{$i=1$ {\bfseries to} $\eta$}
 %     \STATE {\it model}$[j]\!\leftarrow\!$ {\sc update-model}$(${\it model}$[j], \vect{x}_t, 
 % z_t)$
-\STATE $GP[i] \leftarrow$ {\sc Downdate-GP}$\bigl(GP[i], drop-inds\bigr)$ \cmmnt Downdates a GP as per Section \ref{sec_efficient}, revising covariance matrix and data-dependent term to allow for dropped data.
-\STATE $GP[i] \leftarrow$ {\sc Update-GP}$\bigl(GP[i], (\vect{x}_d, \vect{z}_d), add-ind\bigr)$ \cmmnt Updates a GP as per Section \ref{sec_efficient}, revising covariance matrix, data-dependent term and likelihoods to allow for added data.
+\STATE $GP[i] \leftarrow$ {\sc Downdate-GP}$\bigl(GP[i],${\it drop-inds}$\bigr)$ \cmmnt Downdates a GP as per Section \ref{sec_efficient}, revising covariance matrix and data-dependent term to allow for dropped data.
+\STATE $GP[i] \leftarrow$ {\sc Update-GP}$\bigl(GP[i], (\vect{x}_d, \vect{z}_d), ${\it add-ind}$\bigr)$ \cmmnt Updates a GP as per Section \ref{sec_efficient}, revising covariance matrix, data-dependent term and likelihoods to allow for added data.
 \STATE $(m_{t+\delta,i},C_{t+\delta,i}) \leftarrow$ {\sc Make-Predictions}$\bigl(x_{t+\delta},GP[i]\bigr)$ \cmmnt Compute the posterior mean and variances for predictant $\vyst = y_{t+\delta}$ using \eqref{eq:GPMean} and \eqref{eq:GPVar}.
     \ENDFOR
-    \STATE $\vect{\rho} \leftarrow$ {\sc Determine-Weights}$(weights-term,GP)$ \cmmnt Using \eqref{eq:weights}.
-    \STATE $(m'_{t+\delta},C'_{t+\delta}) \leftarrow$ {\sc Combine-Predictions}$(\{\rho_i,m_{t+\delta,i},C_{t+\delta,i}\}_{i=1}^{\eta})$ \\\cmmnt Combined in a weighted mixture, using \eqref{eq:muPsi}.
+    \STATE $\vect{\rho} \leftarrow$ {\sc Determine-Weights}$(${\it weights-term}$,GP[1:\eta])$ \cmmnt Using \eqref{eq:weights}.
+    \STATE $(m'_{t+\delta},C'_{t+\delta}) \leftarrow$ {\sc Combine-Predictions}$(\{\rho_i,m_{t+\delta,i},C_{t+\delta,i}\}_{i=1}^{\eta})$ \\\cmmnt Gaussians are combined in a weighted mixture, using \eqref{eq:muPsi}.
     \STATE {\bf Return:} $(m'_{t+\delta},C'_{t+\delta})$
-\IF{{\sc Is-Time-To-Move}(t) \cmmnt Infrequent} 
-    \STATE $(\vect{\phi}_s, move-inds) \leftarrow$ {\sc Manage-Hypersamples}$( 
-GP, (\vect{\phi}_s), 
-\vect{\phi}_{c},{\theta}_m)$\\ \cmmnt Move hyperparameter samples $move-inds$, as per Section \ref{sec_efficient}.
-\FOR{$i\in move-inds$}
+\IF{{\sc Is-Time-To-Move}(t) \cmmnt Infrequently true} 
+    \STATE $(\vect{\phi}_s, $ {\it move-inds}$) \leftarrow$ {\sc Manage-Hypersamples}$( 
+GP[1:\eta], \vect{\phi}_s, t)$\\ \cmmnt Move hyperparameter samples {\it move-inds}, as per Section \ref{sec_efficient}.
+\FOR{$i\in $ {\it move-inds}}
 \STATE $GP[i] \leftarrow$ {\sc Overwrite-GP}$\bigl(GP[i], (\vect{x}_d, \vect{z}_d), \phi_i\bigr)$ \cmmnt Recompute all quantities given the new hyperperparameter sample.
 \ENDFOR
-\STATE $weights-term \leftarrow$ {\sc Calculate-Weights-Term}$\bigl(\vect{\phi}_s\bigr)$
+\STATE {\it weights-term} $ \leftarrow$ {\sc Calculate-Weights-Term}$\bigl(\vect{\phi}_s\bigr)$
 \ENDIF
     \ENDFOR
   \end{algorithmic}
@@ -478,11 +485,11 @@ Our algorithm can also decide which observation to make at this time, by determi
 \end{center}
 \end{figure}
 
-\noindent In order to empirically evaluate the information processing algorithm described in the previous section, we have used data from two networks of weather sensors: the \emph{Bramblemet} weather sensor network which consists of four weather and tide sensors deployed on the south coast of England to provide real-time weather information to commercial and recreational users of the Port of Southampton (see \url{http://www.bramblemet.co.uk/}), and the \emph{Wannengrat Alpine Observatory} being built above and around the town of Davos as part of Swiss Experiment (see \url{http://www.swiss-experiment.ch/index.php/Wannengrat:Home}). The use of such weather sensors is attractive since they exhibit challenging correlations and delays whose physical processes are well understood. Hence, the relationships learned by the Gaussian process can be compared to these processes.
+\noindent In order to empirically evaluate the information processing algorithm described in the previous section, we have used data from three networks of weather sensors, as described below. The use of such weather sensors is attractive since they exhibit challenging correlations and delays whose physical processes are well understood. Hence, the predictions made by the Gaussian process can be compared to these predictions grounded in better informed physical models.
 
 \subsection{Bramblemet Weather Sensor Network}
 
-\noindent In more detail, the Bramblemet network consists of four sensors (named Bramblemet, Sotonmet, Cambermet and Chimet), each of which measures a range of environmental variables (including wind speed and direction, air temperature, sea temperature, and tide height) and makes up-to-date sensor measurements available through separate web pages (see figure \ref{bramble_sensor} and \small\url{http://www.bramblemet.co.uk/}\normalsize). To facilitate the autonomous collection of sensor data by our information processing algorithm, we have worked with the sensor network operators (Associated British Ports) and supplemented each sensor web page with machine readable RDF data (see figure \ref{rdf} for an example of this format -- current sensor data in this format is available at \small\url{http://www.bramblemet.co.uk/bra.rdf}\normalsize). This format is attractive as it represents a fundamental element of the semantic web, and there exist a number of software tools to parse, store and query it. More importantly, it allows the sensor data to be precisely defined through standard ontologies \cite{rdf}. For example, linking the predicate {\em geo:lat} to the ontology available at \small\url{http://www.w3.org/2003/01/geo/wgs84_pos#}\normalsize ~precisely defines the value {\em ``50.79472''} as representing a latitude in the WGS84 geodetic reference datum. While ontologies for sensor data have yet to be standardised, a number of candidates exist (see \cite{sensor_rdf} for an example based upon Sensor Web Enablement (SWE) and SensorML data component models).
+\noindent The Bramblemet network consists of four sensors (named Bramblemet, Sotonmet, Cambermet and Chimet), each of which measures a range of environmental variables (including wind speed and direction, air temperature, sea temperature, and tide height) and makes up-to-date sensor measurements available through separate web pages (see figure \ref{bramble_sensor} and \small\url{http://www.bramblemet.co.uk/}\normalsize). To facilitate the autonomous collection of sensor data by our information processing algorithm, we have worked with the sensor network operators (Associated British Ports) and supplemented each sensor web page with machine readable RDF data (see figure \ref{rdf} for an example of this format -- current sensor data in this format is available at \small\url{http://www.bramblemet.co.uk/bra.rdf}\normalsize). This format is attractive as it represents a fundamental element of the semantic web, and there exist a number of software tools to parse, store and query it. More importantly, it allows the sensor data to be precisely defined through standard ontologies \cite{rdf}. For example, linking the predicate {\em geo:lat} to the ontology available at \small\url{http://www.w3.org/2003/01/geo/wgs84_pos#}\normalsize ~precisely defines the value {\em ``50.79472''} as representing a latitude in the WGS84 geodetic reference datum. While ontologies for sensor data have yet to be standardised, a number of candidates exist (see \cite{sensor_rdf} for an example based upon Sensor Web Enablement (SWE) and SensorML data component models).
 
 \begin{figure}
 \centering \rule{3.3in}{.005in}\par
@@ -540,12 +547,12 @@ In order to visualise the sensor data and the information processing algorithms 
 
 The use of the Bramblemet sensor network is particularly attractive since the network is subject to real network outages that generate instances of missing sensor readings on which we can evaluate our information processing algorithms. Furthermore, by working with the sensor network operators we have been able to recover the missing data from these periods from the sensors' local caches, and thus, perform quantitative comparisons betweeen our information processing algorithm's predictions and the actual data. Furthermore, within the Bramblemet network sensors, the sensor measurements are rounded prior to their transmission over the wireless link. This results in censored observations, and thus, again by accessing the raw data from the sensors' local caches, we are also able to compare the ability of our information processing algorithms to handle these censored observations.
 
-However, the Bramblemet sensor network only consists of four sensors, and thus, in order to compare the performance of our approach on larger networks we turn to the UK Meteorological Office MIDAS land
+However, the Bramblemet sensor network only consists of four sensors, and thus, in order to compare the performance of our approach on larger networks, we turn to the UK Meteorological Office MIDAS land
 surface stations and Wannengrat Alpine observatory.
 
 \subsection{MIDAS land surface stations data}
 
-We also test our prediction algorithm on the UK Meteorological Office MIDAS land
+We consider the UK Meteorological Office MIDAS land
 surface stations data \cite{MIDASdata}, focusing on the network's readings of maximum daily temperature. Our experiments on the data collected from these several hundred sensors serve as a demonstration of the ability of our algorithm to cope with larger sensor networks. 
  
 \subsection{Wannengrat Alpine Observatory}
@@ -561,7 +568,7 @@ snowpack. For this network, we simply use the data from online data repository, 
 We will compare the use of our GP formalism built around a multiple-sensor covariance against a number of benchmarks:
 \begin{itemize}
 \item[\bf Conventional independent GP\normalfont] in which each environmental variable is modelled separately (i.e. correlations between these parameters are ignored). 
-\item[\bf Kalman filter\normalfont] The Kalman model employed here is based upon a maximum a posteriori
+\item[\bf Kalman filter\normalfont], based upon a maximum a posteriori
 (MAP) recursion in which the hyper-parameters governing the adaption,
 namely the state and observation noise processes, are sequentially
 updated using the maximum-likelihood formulation first proposed by
@@ -699,7 +706,7 @@ Multi-output GP & 0.45 & -15.4\\
 
 \subsection{Prediction of Air Pressures}
 
-\noindent Figure \ref{censored} demonstrates regression and prediction over the rounded air pressure observations from the Bramblemet censor alone. We used a GP model with the Mat\'{e}rn covariance of the non-periodic form \eqref{eq:matern}. Here we can demonstrate a dramatic improvement over Kalman Filter prediction, as demonstrated in table \ref{tbl:AP_RMSEs}. Both the GP and Kalman Filter have an order of $16$; that is, they store only up to the $16$ most recent observations (for the Kalman Filter, this means $p=16$).
+\noindent Figure \ref{censored} demonstrates regression and prediction over the heavily rounded air pressure observations from the Bramblemet sensor alone. We used a GP model with the Mat\'{e}rn covariance of the non-periodic form \eqref{eq:matern}. We further made use of the methods described in section \ref{sec:censored} for managing the censored (rounded) observations that are all we possess for this data. Here we can demonstrate a dramatic improvement over Kalman Filter prediction, as demonstrated in table \ref{tbl:AP_RMSEs}. Both the GP and Kalman Filter have an order of $16$; that is, they store only up to the $16$ most recent observations (for the Kalman Filter, this means $p=16$).
 
 \begin{table}
 \centering
@@ -729,8 +736,8 @@ GP & 0.43 & -20.49 \\
 
 \subsection{Prediction of MIDAS data}
 
-To investigate the practicality of our algorithm on large sensor networks, we apply it to data from January 1990 collected by the 670 sensors that comprised UK Meteorological Office MIDAS land
-surface stations at the time. We arbitrarily selected maximum air temperature as the environmental variable of interest for our experiments, and aimed to perform one-step lookahead prediction.
+We now turn to a larger sensor network and demonstrate the suitability of our prediction algorithm for such networks. In particular, we apply our algorithm to data from January 1990 collected by the 670 sensors that comprised UK Meteorological Office MIDAS land
+surface stations at the time. We arbitrarily selected maximum air temperature as the environmental variable of interest for our experiments, and aimed to perform one-step lookahead prediction. Specifically, we aim to predict the value of the next observation to be received by the network, which may be an observation from a day equal to that of the current observation, but from a sensor different to that most recently observed. The use of a model over both space and time is integral to success on this task.
 
 The dataset comes equipped with latitude and longitude measurements for each sensor, which we can use to express the covariance between any pair of sensors. That is, we take the covariance
 \begin{multline} \label{eq:MIDAS_cov}
@@ -739,7 +746,23 @@ The dataset comes equipped with latitude and longitude measurements for each sen
 \Kl{Mtn}\bigl(t,t';h=1,\,w_t,\nu=\tfrac{3}{2}\bigr)
 \,,
 \end{multline}
-where for the covariance between $l$ and $l'$ we replace $r$ with the great-circle distance between the positions of sensors $l$ and $l'$, divided by isotropic spatial scale hyperparameter $w_l$. Note that our approach here is an alternative to the arbitrary parameterisation presented in equation \eqref{eq:spherical_parameterisation}. This parameterisation requires a hyperparameter for every distinct pair of sensors and is hence impractical for larger numbers of sensors.
+where for the covariance between $l$ and $l'$ we replace $r$ with the great-circle distance between the positions of sensors $l$ and $l'$, divided by isotropic spatial scale hyperparameter $w_l$. Note that our approach here is an alternative to the arbitrary parameterisation presented in equation \eqref{eq:spherical}. This parameterisation requires a hyperparameter for every distinct pair of sensors and is hence impractical for larger numbers of sensors.
+
+Results from our tests on this dataset are displayed in table \ref{tbl:MIDAS_RMSEs}. Note that the GP is easily able to outperform its naive competitor.
+
+\begin{table}
+\centering
+\caption{Predictive performances for MIDAS maximum air temperature data from January 1990.}
+\label{tbl:MIDAS_RMSEs}
+ \begin{tabular}{@{}lrr@{}}
+ \toprule
+Algorithm & RMSE ($\degree\text{C}$) & NMSE (dB)\\
+\midrule
+Na\"{i}ve & 3.93 & 3.61\\
+GP & 1.50 & -4.25 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{Active Data Selection of Tide Heights}
 
@@ -805,7 +828,7 @@ In this case, for purposes of clarity, the fine-grained data is not shown on the
 % The stations available were 3     4     6     8     9    10    11    12    13    14    15    16    18    19    20    29
 % Ambient temperature
 % 30-Mar-2008
-To investigate the practicality of our algorithm on large sensor networks, we apply it to data from 16 air temperature sensors from the Wannengrat Alpine Observatory. We have access to the latitude and longitude co-ordinates of these sensors, and hence use the covariance described for the similar MIDAS data above, \eqref{eq:MIDAS_cov}.
+To investigate the practicality of our active data selection algorithm on large sensor networks, we apply it to data from 16 air temperature sensors from the Wannengrat Alpine Observatory. We have access to the latitude and longitude co-ordinates of these sensors, and hence use the covariance described for the similar MIDAS data above, \eqref{eq:MIDAS_cov}.
 
 Figure \ref{active_sampling2} shows the detailed predictions and samples for five of the sensors, and a summary plot showing the sample times of all 16 sensors. Note that the sensor sampling rate is relatively low at first, however, as the volatile fluctuations in temperature begin to occur at about $t=0.7$ days, the sampling frequency automatically increases to ensure that the prediction uncertainty is maintained below the specified threshold.
 
@@ -865,7 +888,7 @@ Dataset & {$N$} & $\eta$\\
 Tide Heights & 200 & 1620\\
 Air Temperatures & 500 & 972\\
 Air Pressures & 16 & 125\\
-MIDAS & 2000 & 105 \\
+MIDAS & 1500 & 105 \\
 Wind Speeds & 454 & 675\\
 Wannengrat & 500 & 125\\
 \bottomrule
@@ -888,7 +911,7 @@ Finally, our approach has several advantages relative to sequential state-space 
 
 \noindent In this paper we addressed the need for algorithms capable of performing real-time information processing of sensor network data, and we presented a novel computationally efficient formalism of a multi-output Gaussian process. Using weather data collected from two sensor networks, we demonstrated that this formalism allows an end-user to make effective use of sensor data even in the presence of network outages and sensor failures (recovering missing data by making predictions based on previous sensor readings and the current readings of sensors that are functioning), and to automatically determine the sampling rate of each individual sensor in order to ensure that the uncertainty in the environmental parameter being measured stays within a pre-specified limit.
 
-Our future work in this area consists of three areas. First, as a potential replacement to the fixed hyperparameter samples used in this work, we would like to investigate the use of a moving set of hyperparameter samples. In such a scheme, both the weights and positions of samples would be adjusted according to data received, and as the posterior distributions of these hyperparameters become more sharply peaked, we would reduce the number of samples to further increase the computational efficiency of our algorithm.
+Our future work in this area consists of three areas. First, we would like to investigate the use of schemes more sophisticated than the maximum likelihood approach for the movement of the locations of our set of hyperparameter samples. As the posterior distributions of these hyperparameters become more sharply peaked, we might aim to reduce the number of samples to further increase the computational efficiency of our algorithm.
 
 Second, we intend to investigate the use of correlations between different sensor types (rather than between different sensors of the same type as presented here) to perform regression and prediction within our weather sensor network. Our formalism is in no way restricted to identical sensors, and it is expected that many sensors will exhibit correlations in this setting. For example, both wind speed and wind direction, and air temperature and air pressure are likely to be exhibit correlations as weather fronts move over the sensor network.
 

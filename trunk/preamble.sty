@@ -56,6 +56,17 @@
 \newcommand{\Lossi}[2]{\text{V}_i(\,x_{#1}\,|\,I_{#2}\,)}
 \newcommand{\Loss}[3]{\Lambda_{#1}(\,x_{#2}\,|\,I_{#3}\,)}
 
+\newcommand{\meang}[2]{{m}\!\left({#1}\!\;\middle\vert\;\!#2\right)}
+\newcommand{\meansub}[3]{\vect{m}\!\left({#1}_{#2}\!\;\middle\vert\;\!#3\right)}
+\newcommand{\novmeansub}[3]{{m}\!\left({#1}_{#2}\!\;\middle\vert\;\!#3\right)}
+\newcommand{\novcovsub}[3]{{C}\!\left({#1}_{#2}\!\;\middle\vert\;\!#3\right)}
+\newcommand{\covsub}[3]{\mat{C}\!\left({#1}_{#2}\!\;\middle\vert\;\!#3\right)} 
+\newcommand{\twocovsub}[4]{\mat{C}\!\left({#1}_{#2},\,{#1}_{#3}\!\;\middle\vert\;\!#4\right)} 
+\newcommand{\meanskinnysub}[3]{\vect{m}\!\left({#1}_{#2}\middle\vert#3\right)}
+\newcommand{\covskinnysub}[3]{\mat{C}\!\left({#1}_{#2}\middle\vert#3\right)} 
+
+\newcommand{\novmeanboth}[4]{{m}\!\left({#1}^{(\text{#2})}_{#3}\!\;\middle\vert\;\!#4\right)}
+
 %
 \newcommand{\vxst}{\vx_\star}
 \newcommand{\vxD}{\vect{x}_d}
@@ -78,8 +89,6 @@
 \newcommand{\phst}{\phi_\star}
 %
 
-
-
 \newcommand{\Dt}{\vect{\mathfrak{a}}}
 \newcommand{\Kt}[1]{\vect{\mathfrak{b}}_{\star,#1}}
 
@@ -101,9 +110,9 @@
 \newcommand{\defequal}{\triangleq}
 \newcommand{\degree}{^\circ}
 
-\providecommand{\norm}[1]{\left\lvert#1\right\rvert}
+\providecommand{\norm}[1]{\left\lvert#1\rightert}
 \providecommand{\normw}[1]{\left\lVert#1\right\rVert_w}
-\providecommand{\card}[1]{\left\lvert#1\right\rvert}
+\providecommand{\card}[1]{\left\lvert#1\rightert}
 
 \DeclareMathOperator{\chol}{chol}
 \DeclareMathOperator{\diag}{diag}
