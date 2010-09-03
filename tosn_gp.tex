@@ -238,8 +238,8 @@ at a set of sample points $\vph_s=\{\phi_1,\ldots,\phi_\eta\}$, giving $\vect{q}
 
 To this end, we apply \emph{Bayesian Monte Carlo}, and thus, assign further GP priors to $q$ and $r$ \cite{BZMonteCarlo}. This choice is motivated by the fact that variables over which we have a multivariate Gaussian distribution are joint Gaussian with any projections of those variables. As such, given that integration is a projection, we can use our computed samples $\vect{q}_s$ in order to perform Gaussian process regression about the value of integrals over $q(\phi)$, and similarly for $r$. Note that the quantity we wish to perform inference about, 
 \begin{equation}
- \psi\defequal\p{\vyst}{\vect{q},\,\vect{r},\,\vzD,I}= \frac{\int q(\phst)\,r(\phst)\,\p{\phst}{I}\,\ud\phst}
-{\int r(\phst)\,\p{\phst}{I}\,\ud\phst}\,,
+ \psi\defequal\p{\vyst}{\vect{q},\,\vect{r},\,\vzD,I}= \frac{\int\ud\phst\, q(\phst)\,r(\phst)\,\p{\phst}{I}}
+{\int\ud\phst\,r(\phst)\,\p{\phst}{I}}\,,
 \end{equation} 
 possesses richer structure than that previously considered using Bayesian Monte Carlo techniques. In our case, $r(\phi)$ appears in both our numerator and denominator integrals, introducing correlations between the values we estimate for them. The correlation structure of this system is illustrated in figure \ref{fig:BMC2}. 
 
@@ -248,10 +248,10 @@ In considering any problem of inference, we need to be clear about both what inf
 \begin{align}
 &\p{\vyst}{\vect{q}_s,\,\vect{r}_s,\,\vzD,\,I} \nonumber\\  
 & = \iiint \p{\vyst}{\vect{q},\,\vect{r},\,\vzD,I}\,\p{\psi}{\vect{q},\,\vect{r},\,I}\,\p{\vect{q}}{\vect{q}_s,\,I}\,\p{\vect{r}}{\vect{r}_s,\,I}\,\ud\psi\, \ud \vect{q}\,\ud \vect{r} \nonumber\\
-& = \iiint \psi\,\dd{\psi}{\frac{\int q_\ast\,r_\ast\,\p{\phst}{I}\,\ud\phst}
-{\int r_\ast\,\p{\phst}{I}\,\ud\phst}}\, \N{\vect{q}}{\vect{m}^{(q)}}{\mat{C}^{(q)}}\, \N{\vect{r}}{\vect{m}^{(r)}}{\mat{C}^{(r)}}\,\ud\psi\, \ud \vect{q}\,\ud \vect{r} \nonumber \\
-& = \int \frac{\int m^{(q)}_\ast\,r_\ast\,\p{\phst}{I}\,\ud\phst}
-{\int r_\ast\,\p{\phst}{I}\,\ud\phst}\, \N{\vect{r}}{\vect{m}^{(r)}}{\mat{C}^{(r)}}\,\ud \vect{r}\,.
+& = \iiint \psi\,\dd{\psi}{\frac{\int \ud\phst\,q_\ast\,r_\ast\,\p{\phst}{I}}
+{\int \ud\phst\,r_\ast\,\p{\phst}{I}}}\, \N{\vect{q}}{\vect{m}^{(q)}}{\mat{C}^{(q)}}\, \N{\vect{r}}{\vect{m}^{(r)}}{\mat{C}^{(r)}}\,\ud\psi\, \ud \vect{q}\,\ud \vect{r} \nonumber \\
+& = \int \frac{\int \ud\phst\,m^{(q)}_\ast\,r_\ast\,\p{\phst}{I}}
+{\int \ud\phst\,r_\ast\,\p{\phst}{I}}\, \N{\vect{r}}{\vect{m}^{(r)}}{\mat{C}^{(r)}}\,\ud \vect{r}\,.
 \end{align}
 Here, unfortunately, our integration over $r$ becomes nonanalytic. However, we can employ a maximum {\it a posteriori} approximation by assuming
 $$
@@ -567,8 +567,8 @@ snowpack. For this network, we simply use the data from online data repository, 
 \noindent In this section we empirically evaluate our information processing algorithm on real weather data collected from the sensor networks described above. 
 We will compare the use of our GP formalism built around a multiple-sensor covariance against a number of benchmarks:
 \begin{itemize}
-\item[\bf Conventional independent GP\normalfont] in which each environmental variable is modelled separately (i.e. correlations between these parameters are ignored). 
-\item[\bf Kalman filter\normalfont], based upon a maximum a posteriori
+\item[\bf Conventional independent GP\normalfont]: in which each environmental variable is modelled separately (i.e. correlations between these parameters are ignored). 
+\item[\bf Kalman filter\normalfont]: based upon a maximum a posteriori
 (MAP) recursion in which the hyper-parameters governing the adaption,
 namely the state and observation noise processes, are sequentially
 updated using the maximum-likelihood formulation first proposed by
@@ -579,8 +579,8 @@ accomodated for using the scheme advocated in Shumway \& Stoffer
 \cite{Shumway+Stoffer:00}.  The algorithm operates, for multiple time-series
 forecasting, using a $p$-th order lookback into the data, including
 cross-coupling between time-series, making it a recursive multivariate
-autoregressive, MAR($p$), process. If not otherwise specified below, $p$ was taken as 5.
-\item[\bf Na\"{i}ve algorithm\normalfont] which simply predicts that the variable at the next time step will be equal to that most recently observed at that sensor.
+autoregressive, MAR($p$), process.
+\item[\bf Na\"{i}ve algorithm\normalfont]: which simply predicts that the variable at the next time step will be equal to that most recently observed at that sensor.
 \end{itemize}
 The first benchmark illustrates the effectiveness of our Gaussian process formalism that expresses correlations between different sensors. The second benchmark is a state-of-the-art alternative, that has previously been used for tracking environmental sensor data \cite{kalman_oceanography}. Finally, the na\"{i}ve third benchmark provides a lower bound on the performance of a prediction algorithm.
 
@@ -642,7 +642,7 @@ In this case, the independent GP quite reasonably predicts that the tide will re
 
 Note also that there are brief intervals of missing data for all sensors just after both of the first two peak tides. During the second interval, the GP's predictions for the tide are notably better than for the first -- the greater quantity of data it has observed by the time of the second interval allow it to produce more accurate predictions. With time, the GP is able to build successively better models for the series.
 
-The predictive performances for our various algorithms over this dataset can be found in table \ref{tbl:TH_RMSEs}.
+The predictive performances for our various algorithms over this dataset can be found in table \ref{tbl:TH_RMSEs}. Note that for the Kalman filter tested, the lookback $p$ was taken as 16.
 
 \begin{table}
 \centering
@@ -687,7 +687,7 @@ We next tested on air temperature data. Figure \ref{at_reg} demonstrates our alg
 \dd{l}{l'}\Kl{Mtn}\bigl(t,t';h\dnt{D},\,w\dnt{D},\nu=\tfrac{3}{2}\bigr)
 \,,
 \end{multline*}
-Our covariance over time consisted of three terms. The first was periodic, whose period $w_P$ was learned as $1$ day, describing nightly dips in temperature. The second term describes longer-term trends in temperature. Its time scale $w\dnt{T}$ was learned as $3$ days, with a relative magnitude $h\dnt{T}$ just over twice that of the periodic term, $h\dnt{P}$. From this we can induce that the periodic term represents only a relatively minor component of this model. Finally, the third term represents higher frequency disturbances, with a time scale learned as $4$ hours. Note that this final term is not correlated amongst sensors as were the other two: these disturbances appear to be local to each sensor. The individual output scales for each sensor given by $W$ were learned as $2\degree$C, $6\degree$C and $2.6\degree$C respectively. These give the scales of the periodic fluctuations and longer-term drifts in the air temperature at each sensor. For comparison, the scale of the disturbances $h\dnt{D}$ were learned as $1\degree$C. As for the tide heights example, only the sensor correlations and delays were sampled over for the depicted predictions. The predictive performances for this dataset are listed in table \ref{tbl:AT_RMSEs}.
+Our covariance over time consisted of three terms. The first was periodic, whose period $w_P$ was learned as $1$ day, describing nightly dips in temperature. The second term describes longer-term trends in temperature. Its time scale $w\dnt{T}$ was learned as $3$ days, with a relative magnitude $h\dnt{T}$ just over twice that of the periodic term, $h\dnt{P}$. From this we can induce that the periodic term represents only a relatively minor component of this model. Finally, the third term represents higher frequency disturbances, with a time scale learned as $4$ hours. Note that this final term is not correlated amongst sensors as were the other two: these disturbances appear to be local to each sensor. The individual output scales for each sensor given by $W$ were learned as $2\degree$C, $6\degree$C and $2.6\degree$C respectively. These give the scales of the periodic fluctuations and longer-term drifts in the air temperature at each sensor. For comparison, the scale of the disturbances $h\dnt{D}$ were learned as $1\degree$C. As for the tide heights example, only the sensor correlations and delays were sampled over for the depicted predictions. The predictive performances for this dataset are listed in table \ref{tbl:AT_RMSEs}. The Kalman filter was tested with an order of $p=15$.
 
 \begin{table}
 \centering
@@ -759,7 +759,7 @@ Results from our tests on this dataset are displayed in table \ref{tbl:MIDAS_RMS
 Algorithm & RMSE ($\degree\text{C}$) & NMSE (dB)\\
 \midrule
 Na\"{i}ve & 3.93 & 3.61\\
-GP & 1.50 & -4.25 \\
+GP & 1.53 & -4.57 \\
 \bottomrule
 \end{tabular}
 \end{table}
