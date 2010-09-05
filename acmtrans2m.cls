@@ -130,7 +130,7 @@
 \def\@acmNumber{N} %the number
 \def\@acmYear{YY}  %the last two digits of the year, 
 \def\@acmMonth{Month}  %the month
-\def\@journalName{ACM Journal Name} %the name of the ACM journal
+\def\@journalName{ACM Transactions of Sensor Networks} %the name of the ACM journal
 \def\@journalNameShort{jn} %the acronym of the ACM journal
 \def\@permissionCodeOne{0000-0000} %the permission code of the ACM journal
 \def\@permissionCodeTwo{0000} %the permission code of the ACM journal part 2
