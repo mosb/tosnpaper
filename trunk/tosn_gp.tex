@@ -584,10 +584,10 @@ Where appropriate, predictive quality will be evaluated using the standard root 
  \text{RMSE}(\vect{m},\vy) = \sqrt{\frac{1}{N}\sum_{i=1}^N (m_i-y_i)^2}\,.
 \end{equation*}
 Here $\vect{m}$ is a vector of $N$ estimates for the vector of variables $\vy$. The estimates we use are the means for $\vy$ conditioned on some set of observations $\vz$ (as dependent on the application). We also provide the normed mean squared errors (NMSEs), defined as
-\begin{equation*}
+\begin{equation*}%\eqref{eq:NMSE}
  \text{NMSE}(\vect{m},\vy) = 10 \log_{10} \frac{\nicefrac{1}{N} \sum_{i= 1}^{N} (m_i - y_i)^2 }{\nicefrac{1}{N} \left(\sum_{i = 1}^{N} y_i^2\right) - \left(\nicefrac{1}{N} \sum_{i = 1}^{N} y_i\right)^2 }\,,
 \end{equation*}
-which have decibels as units.
+the ratio of the mean squared error and the variance of our data, expressed in units of decibels. The NMSE provides a measure of the accuracy in our predictions that is relatively insensitive to the scale of variation (and units) of the relevant variable.
 
 It is commonly the case that after a significant volume of data, the majority of the weight will be concentrated at a single trial hyperparameter sample -- the posterior distribution for the hyperparameter $\p{\phi}{\vzD,\,I}$ will be close to a delta function at that value. In this case, we will say, informally, that we have \emph{learned} the hyperparameter to have that single value. Where this appears to be the case, performing a local optimisation of the likelihood $\p{\vzD}{\phi,\,I}$ can help to find the point of highest posterior density.
 
@@ -640,7 +640,7 @@ Only the correlations amongst sensors and their individual delays were sampled o
 Algorithm & RMSE (m) & NMSE (dB)\\
 \midrule
 Na\"{i}ve & 7.5 $\times 10^{-1}$ & -2.1 \\
-Kalman filter & 3.9 $\times 10^5$ & 112.2 \\
+Kalman filter & 1.7 $\times 10^{-1}$ & -15.2 \\
 Independent GPs & 8.7 $\times 10^{-2}$ & -20.3 \\
 Multi-output GP & 3.8 $\times 10^{-2}$ & -27.6 \\
 \bottomrule
@@ -652,7 +652,7 @@ In this case, the independent GP quite reasonably predicts that the tide will re
 
 Note also that there are two brief intervals of missing data for all sensors just after both of the first two peak tides. During the second interval, the GP's predictions for the tide are notably better than for the first -- the greater quantity of data it has observed allows it to produce more accurate predictions. With time, the GP is able to build successively better models for the series.
 
-The predictive performances for our various algorithms over this dataset can be found in table \ref{tbl:TH_RMSEs}. Note that for the Kalman filter tested, the lookback $p$ was taken as 16. Note that our multi-output GP which  exploits correlations between the sensors, and the periodicity in each individual sensors' measurements, significantly outperforms the Kalman filter and the independent GP.
+The predictive performances for our various algorithms over this dataset can be found in table \ref{tbl:TH_RMSEs}. Note that for the Kalman filter tested, the lookback $p$ was taken as 16. Note that our multi-output GP which exploits correlations between the sensors, and the periodicity in each individual sensors' measurements, significantly outperforms the Kalman filter and the independent GP.
 
 
 \subsection{Prediction of Air Temperatures}
@@ -661,8 +661,8 @@ The predictive performances for our various algorithms over this dataset can be 
 \begin{figure}
 \begin{center}
 \begin{tabular}{cc}
-\hspace{-0.75cm}\epsfig{figure=figures/AT_Bramble_GP.eps,width=7.2cm} & \hspace{-1.00cm}\epsfig{figure=figures/AT_Bramble_KF.eps,width=7.2cm} \\
-\hspace{-0.75cm}\epsfig{figure=figures/AT_Chi_GP.eps,width=7.2cm} & \hspace{-1.00cm}\epsfig{figure=figures/AT_Chi_KF.eps,width=7.2cm} \\
+\hspace{-1cm}\epsfig{figure=figures/AT_Bramble_GP.eps,width=7.2cm} & \hspace{-1.00cm}\epsfig{figure=figures/AT_Bramble_KF.eps,width=7.8cm} \\
+\hspace{-1cm}\epsfig{figure=figures/AT_Chi_GP.eps,width=7.2cm} & \hspace{-1.00cm}\epsfig{figure=figures/AT_Chi_KF.eps,width=7.8cm} \\
 \hspace{-0.6cm}(a) & \hspace{-0.6cm}(b) \\
 \end{tabular}
 \caption{One-step lookahead prediction of air temperature data for (a) a multi-output Gaussian process and (b) a Kalman filter.}
@@ -684,7 +684,7 @@ We next tested on air temperature data. Figure \ref{at_reg} demonstrates our alg
 \end{multline*}
 Our covariance over time consisted of three terms. The first was periodic, whose period $w_P$ was learned as $1$ day, describing nightly dips in temperature. The second term describes longer-term trends in temperature. Its time scale $w\dnt{T}$ was learned as $3$ days, with a relative magnitude $h\dnt{T}$ just over twice that of the periodic term, $h\dnt{P}$. From this we can induce that the periodic term represents only a relatively minor component of this model. Finally, the third term represents higher frequency disturbances, with a time scale learned as $4$ hours. Note that this final term is not correlated amongst sensors as were the other two; these disturbances appear to be local to each sensor. The individual output scales for each sensor given by $W$ were learned as $2\degree$C, $6\degree$C and $2.6\degree$C respectively. These give the scales of the periodic fluctuations and longer-term drifts in the air temperature at each sensor. For comparison, the scale of the disturbances $h\dnt{D}$ were learned as $1\degree$C. As for the tide heights example, only the sensor correlations and delays were sampled over for the depicted predictions.
 
-The predictive performances for this dataset are shown in table \ref{tbl:AT_RMSEs}. The Kalman filter was tested with an order of $p=15$. Note again that the multi-output GP outperforms the other benchmarks with the Kalman filter performing particularly badly as it significantly lags the real temperature measurement.
+The predictive performances for this dataset are shown in table \ref{tbl:AT_RMSEs}. The Kalman filter was tested with an order of $p=15$. Note again that the multi-output GP outperforms the other benchmarks with the Kalman filter performing particularly badly, it significantly lagging the real temperature measurement.
 
 \begin{figure}
 \begin{center}
@@ -727,7 +727,8 @@ Results from our tests on this dataset are displayed in table \ref{tbl:MIDAS_RMS
 Algorithm & RMSE ($\degree\text{C}$) & NMSE (dB)\\
 \midrule
 Na\"{i}ve & 0.84 & -10.0\\
-Kalman filter & 3.94 & 3.1\\
+Kalman filter & 0.98 & -9.0\\
+Independent GPs & 0.82 & -10.5 \\
 Multi-output GP & 0.45 & -15.4\\
 \bottomrule
 \end{tabular}
@@ -735,7 +736,7 @@ Multi-output GP & 0.45 & -15.4\\
 
 \begin{table}
 \centering
-\caption{Predictive performances for five-day Bramblemet air pressure dataset.}
+\caption{Predictive performances for one-day Bramblemet air pressure dataset. Note that with data from only one sensor, our multi-output GP formalism is not applicable.}
 \label{tbl:AP_RMSEs}
  \begin{tabular}{@{}lrr@{}}
  \\
@@ -759,6 +760,7 @@ GP for censored data & 0.43 & -20.49 \\
 Algorithm & RMSE ($\degree\text{C}$) & NMSE (dB)\\
 \midrule
 Na\"{i}ve & 3.93 & 3.61\\
+Independent GPs & 2.50 & -0.31 \\
 Multi-output GP & 1.53 & -4.57 \\
 \bottomrule
 \end{tabular}
@@ -930,7 +932,7 @@ Finally, we would like to use the probabilistic model that the GP builds to auto
 
 \section*{Acknowledgments}
 
-\noindent This research was undertaken as part of the ALADDIN (Autonomous Learning Agents for Decentralised Data and Information Networks) project and is jointly funded by a BAE Systems and EPSRC strategic partnership (EP/C548051/1). We would like to thank B. Blaydes of the Bramblemet/Chimet Support Group, and W. Heaps of Associated British Ports (ABP) for allowing us access to the weather sensor network, hosting our RDF data on the sensor web sites, and for providing raw sensor data as required. We also thank the UK Met office for the use of
+\noindent This research was undertaken as part of the ALADDIN (Autonomous Learning Agents for Decentralised Data and Information Networks) project, jointly funded by a BAE Systems and EPSRC strategic partnership (EP/C548051/1), and was also part of the Systems Engineering for Autonomous Systems (SEAS) Defence Technology Centre established by the UK Ministry of Defence. We would like to thank B. Blaydes of the Bramblemet/Chimet Support Group, and W. Heaps of Associated British Ports (ABP) for allowing us access to the weather sensor network, hosting our RDF data on the sensor web sites, and for providing raw sensor data as required. We also thank the UK Met office for the use of
 the MIDAS dataset.
 
  
@@ -1147,7 +1149,7 @@ By setting the appropriate row and column dimensions (to zero if necessary), thi
 
 \subsection{Data Term Update} \label{sec:DataTermUpdate}
 
-\noindent We have all terms defined in Section \ref{sec:CholeskyUpdate}, in addition to $\begin{bmatrix} Y_1\\Y_2\\Y_3 \end{bmatrix}$ and the product $\begin{bmatrix} C_1\\C_3 \end{bmatrix}\defequal\begin{bmatrix} R_{1,1} & R_{1,3} \\ 0 & R_{3,3} \end{bmatrix}^{-1} \begin{bmatrix} Y_1\\Y_3 \end{bmatrix}$. To efficiently determine $\begin{bmatrix} D_1\\D_2\\D_3 \end{bmatrix}\defequal\begin{bmatrix} S_{1,1} & S_{1,2} & S_{1,3} \\ 0 & S_{2,2} & S_{2,3} \\ 0 & 0 & S_{3,3} \end{bmatrix}^{-1} \begin{bmatrix} Y_1\\Y_2\\Y_3 \end{bmatrix}$, we have
+We have all terms defined in Section \ref{sec:CholeskyUpdate}, in addition to the data $$\begin{bmatrix} Y_1\\Y_2\\Y_3 \end{bmatrix}$$ and the product $$\begin{bmatrix} C_1\\C_3 \end{bmatrix}\defequal\begin{bmatrix} R_{1,1} & R_{1,3} \\ 0 & R_{3,3} \end{bmatrix}^{-\tr} \begin{bmatrix} Y_1\\Y_3 \end{bmatrix}\,.$$ To efficiently determine the updated product $$\begin{bmatrix} D_1\\D_2\\D_3 \end{bmatrix}\defequal\begin{bmatrix} S_{1,1} & S_{1,2} & S_{1,3} \\ 0 & S_{2,2} & S_{2,3} \\ 0 & 0 & S_{3,3} \end{bmatrix}^{-\tr} \begin{bmatrix} Y_1\\Y_2\\Y_3 \end{bmatrix}\,,$$ we have
 
 \begin{align}
  D_{1}&=C_{1}\\
