@@ -715,9 +715,9 @@ The dataset comes equipped with latitude and longitude measurements for each sen
 \Kl{Mtn}\bigl(t,t';h=1,\,w_t,\nu=\tfrac{3}{2}\bigr)
 \,,
 \end{multline}
-where for the covariance between $l$ and $l'$ we replace $r$ with the great-circle distance between the positions of sensors $l$ and $l'$, divided by isotropic spatial scale hyperparameter $w_l$. Note that our approach here is an alternative to the arbitrary parameterisation presented in equation \eqref{eq:spherical}. This parameterisation requires a hyperparameter for every distinct pair of sensors and is hence impractical for larger numbers of sensors.
+where for the covariance between $l$ and $l'$ we replace $r$ with the great-circle distance between the positions of sensors $l$ and $l'$, divided by isotropic spatial scale hyperparameter $w_l$. Note that our approach here is an alternative to the arbitrary parameterisation presented in equation \eqref{eq:spherical}. This parameterisation requires a hyperparameter for every distinct pair of sensors and is hence impractical for larger numbers of sensors. The multi-output GP model built using \eqref{eq:MIDAS_cov} is compared against an independent GPs model in which no spatial inference is performed.
 
-Results from our tests on this dataset are displayed in table \ref{tbl:MIDAS_RMSEs}. Note that the GP is easily able to outperform its naive competitor.
+Results from our tests on this dataset are displayed in table \ref{tbl:MIDAS_RMSEs}. Note that the GP is easily able to outperform its naive competitor. We also performed a comparison against a method built around basis functions (a Kalman filter is incapable of the simultaneous spatio-temporal inference required for this particular problem). A set of Gaussian basis functions, $\phi_i$, were centred at the sensor locations for the last 30 observations and used to infer the value at the next sensor on the list via a linear basis model of the form $y = \sum_i w_i \phi_i$. The factor weights were inferred using a Bayesian linear regression model with shrinkage priors over all the parameters. The inference was performed via variational Bayes \cite{Bishop}. The multi-output GP demonstrated significant improvement over this alternative method. 
 
 \begin{table}
 \centering
