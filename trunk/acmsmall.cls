@@ -95,7 +95,7 @@
 \def\@acmPrice{10.00} %article price
 \def\@acmYear{YYYY} %the last two digits of the year, 
 \def\@acmMonth{1}  %the month
-\def\@journalName{ACM Journal Name} %the name of the ACM journal
+\def\@journalName{ACM Transactions on Sensor Networks} %the name of the ACM journal
 \def\@journalNameShort{ACM} %the acronym of the ACM journal 
 \def\@journalCode{jn} %the code of the ACM journal 
 \def\@permissionCodeOne{0000-0000} %the permission code of the ACM journal
@@ -747,9 +747,9 @@
   \global\@acmtmisfalse
   \global\@acmtiisfalse
   \global\@acmtistfalse
-  \def\@journalName{ACM Transactions on Embedded Computing Systems}
-  \def\@journalNameShort{ACM Trans. Embedd. Comput. Syst.}
-  \def\@journalCode{tecs}
+  \def\@journalName{ACM Transactions on Sensor Networks}
+  \def\@journalNameShort{ACM  Trans. Sensor. Netw.}
+  \def\@journalCode{TOSN}
   \def\@permissionCodeOne{1539-9087} 
 }
 
