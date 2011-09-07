@@ -1,32 +1,3 @@
-%\documentclass{acmsmall}
-%\usepackage{preamble}
-%\catcode`\@=11
-%\usepackage{booktabs}
-%\usepackage{caption}
-%\newcommand{\dnt}[1]{_{{#1}}}
-%\newcommand{\Kl}[1]{K_{\text{#1}}}
-%\usepackage{nicefrac}
-%\usepackage{algorithmic}
-%\usepackage{algorithm}
-%\newcommand{\cmmnt}{// }
-
-%\markboth{M. A. Osborne et al.}{Real-Time Information Processing of Environmental Sensor Network Data}
-
-%\title{Real-Time Information Processing of Environmental Sensor Network Data using Bayesian Gaussian Processes\footnote{A preliminary version of the work presented in this paper appeared as: Osborne, M. A., Rogers, A., Ramchurn, S., Roberts, S. J. and Jennings, N. R. (2008) Towards Real-Time Information Processing of Sensor Network Data using Computationally Efficient Multi-output Gaussian Processes. In: International Conference on Information Processing in Sensor Networks (IPSN 2008), April 2008, St. Louis, Missouri, USA. pp. 109-120.}}
-
-%\author{M. A. Osborne and S. J. Roberts\\
-%Department of Engineering Science\\
-%University of Oxford\\
-%Oxford, OX1 3PJ, UK.\\
-%{\tt{\{mosb,sjrob\}@robots.ox.ac.uk}}\\
-%\and\\
-%A. Rogers and N. R. Jennings\\
-%School of Electronics and Computer Science\\
-%University of Southampton\\
-%Southampton, SO17 1BJ, UK.\\
-%{\tt{\{acr,nrj\}@ecs.soton.ac.uk}}\\
-%}
-
 
 \documentclass[prodmode,acmtecs]{acmsmall}
 
@@ -41,33 +12,34 @@
 
 % Mike's material
 \usepackage{preamble}
+\catcode`\@=11
 \usepackage{booktabs}
 \usepackage{caption}
 \newcommand{\dnt}[1]{_{{#1}}}
 \newcommand{\Kl}[1]{K_{\text{#1}}}
 \usepackage{nicefrac}
-%\usepackage{algorithmic}
+\usepackage{algorithmic}
 %\usepackage{algorithm}
 \newcommand{\cmmnt}{// }
 
 % Metadata Information
 \acmVolume{9}
 \acmNumber{1}
-\acmArticle{}
+\acmArticle{1}
 \acmYear{2012}
-\acmMonth{}
+\acmMonth{1}
 
 \begin{document}
 
 % Page heads
-\markboth{M. A. Osborne et al.}{Real-Time Information Processing of Environmental Sensor Network Data using Bayesian Gaussian Processes}
+\markboth{M. A. Osborne et al.}{Real-Time Information Processing using Bayesian Gaussian Processes}
 
 % Title portion
 \title{Real-Time Information Processing of Environmental Sensor Network Data using Bayesian Gaussian Processes}
-\author{MICHAEL A. OSBORNE
-\affil{Oxford University}
-STEPHEN. J. ROBERTS
-\affil{Oxford University}
+\author{MICHAEL A. OSBORNE 
+\affil{University of Oxford}
+STEPHEN J. ROBERTS
+\affil{University of Oxford}
 ALEX ROGERS
 \affil{University of Southampton}
 NICHOLAS R. JENNINGS
@@ -83,12 +55,12 @@ NICHOLAS R. JENNINGS
 
 \keywords{Learning of models from data, Gaussian processes, information processing, adaptive sampling}
 
-\acmformat{Osborne, M. A., Roberts, S. J., Rogers, A. and Jennings, N. R. 2012. Real-time information processing of environmental sensor network data using Bayesian Gaussian processes.}
+\acmformat{Osborne, M. A., Roberts, S. J., Rogers, A. and Jennings, N. R. 2012. Real-time information processing using Bayesian Gaussian processes.}
 
 \begin{bottomstuff}
-A preliminary version of the work presented in this paper appeared as: Osborne, M. A., Rogers, A., Ramchurn, S., Roberts, S. J. and Jennings, N. R. (2008) Towards Real-Time Information Processing of Sensor Network Data using Computationally Efficient Multi-output Gaussian Processes. In: International Conference on Information Processing in Sensor Networks (IPSN 2008), April 2008, St. Louis, Missouri, USA. pp. 109-120.
-
-Author's addresses: M. A. Osborne {and} S. J. Roberts, Department of Engineering, Oxford University, Oxford, UK; A. Rogers {and} N. R. Jennings, Electronics and Computer Science, University of Southampton, Southampton, UK.
+A preliminary version of the work presented in this paper appeared as: Osborne, M. A., Rogers, A., Ramchurn, S., Roberts, S. J. and Jennings, N. R. (2008) Towards Real-Time Information Processing of Sensor Network Data using Computationally Efficient Multi-output Gaussian Processes. In: International Conference on Information Processing in Sensor Networks (IPSN 2008), St. Louis, Missouri, USA. pp. 109-120.
+ 
+Author's addresses: M. A. Osborne {and} S. J. Roberts, Department of Engineering Science, University of Oxford, Oxford, UK; A. Rogers {and} N. R. Jennings, Electronics and Computer Science, University of Southampton, Southampton, UK.
 \end{bottomstuff}
 
 \maketitle
@@ -103,7 +75,7 @@ Now, many of the information processing tasks described above have previously be
 
 Against this background, this paper describes our work developing just such an algorithm. More specifically, we present a novel iterative formulation of a multi-output Gaussian process (GP) that uses a computationally efficient implementation of {\em Bayesian Monte Carlo} to marginalise hyperparameters, efficiently re-uses previous computations by following an online update procedure as new data sequentially arrives, and uses a principled `windowing' of data in order to maintain a reasonably sized data set. We use this GP to build a probabilistic model of the environmental variables being measured by sensors within the network, that is tolerant to data that may be missing, delayed, censored and/or correlated. This model allows us to then perform information processing tasks including: modelling the accuracy of the sensor readings, predicting the value of missing sensor readings, predicting how the monitored environmental variables will evolve in the near future, and performing active sampling by deciding when and from which sensor to acquire readings. We validate our approach using data collected from three networks of weather sensors and show that it yields better inference performance than both conventional independent single-output Gaussian processes, that model each sensor independently, and the Kalman filter. Finally, we analyse the computational speed of our algorithm. We show that our formalism efficiently re-uses previous computations by following an online update procedure as new data sequentially arrives, and this results in a four-fold increase in computational speed in the largest cases considered. Furthermore, it enables all of the information processing tasks described in this paper to be performed in real-time.
 
-The remainder of this paper is organised as follows: Section \ref{sec_info} describes the information processing problem that we face. Section \ref{sec_gp} presents our Gaussian process formulation, and Section \ref{sec_implementation} describes the three sensor networks used to validate it. In Section \ref{sec_evaluation} we present experimental results using data from these networks. In Section \ref{sec_computation} we present results on the computational cost of our algorithm, and we discuss its implementation in Section \ref{sec_implementation}. Related work is discussed in Section \ref{sec_related}, and finally, we conclude in Section \ref{sec_conclusion}.
+The remainder of this paper is organised as follows: Section \ref{sec_info} describes the information processing problem that we face. Section \ref{sec_gp} presents our Gaussian process formulation, and Section \ref{sec_datasets} describes the three sensor networks used to validate it. In Section \ref{sec_evaluation} we present experimental results using data from these networks. In Section \ref{sec_computation} we present results on the computational cost of our algorithm, and we discuss its trial deployment in Section \ref{sec_trial_deployment}. Related work is discussed in Section \ref{sec_related}, and finally, we conclude in Section \ref{sec_conclusion}.
 
 \section{The Information Processing Problem}\label{sec_info}
 
@@ -238,8 +210,7 @@ Note that the intuitive spherical parameterisation \eqref{eq:spherical} assists 
 \begin{align}
  K(\phi,\phi') & \defequal \N{\phi}{\phi'}{\mat{w}^\tr \mat{w}} \label{eq:BMCsqdexp}\,.
 \end{align}
-
- \begin{figure}
+\begin{figure}
 \centering%
 	\begin{pspicture}(-6,0)(6,5)%
 	%\showgrid
@@ -293,14 +264,13 @@ Note that the intuitive spherical parameterisation \eqref{eq:spherical} assists 
 	\nccircle[angleA=180]{Rj}{0.5}
 	\nccircle[angleA=180]{Ri}{0.5}
 
-	\end{pspicture}%
+	\end{pspicture}
+	\vspace{0.25cm}%
 % NB: X is irrelevant if we are doing an expectation integral -- just drop it
 \caption{Bayesian network for marginalising hyperparameters using Bayesian Monte Carlo. Shaded nodes are known and double-circled nodes are deterministic given all their parents. All $Q$ nodes are correlated with one another, as are all $R$ nodes, and the
     context $I$ is correlated with all nodes.}
 \label{fig:BMC2}
 \end{figure}
-
-
 Finally, using the further definition for $i,j \in \mathcal{I}_s$, that
 \begin{equation}
 \Nt(i,j) \defequal \N{\begin{bmatrix} \vph_i \\ \vph_j \end{bmatrix}}{\begin{bmatrix} \vect{\nu} \\ \vect{\nu} \end{bmatrix}}{\begin{bmatrix}  \mat{\lambda}^\tr \mat{\lambda}+\mat{w}^\tr \mat{w} & \mat{\lambda}^\tr \mat{\lambda} \\ \mat{\lambda}^\tr \mat{\lambda} & \mat{\lambda}^\tr \mat{\lambda}+\mat{w}^\tr \mat{w}
@@ -323,11 +293,10 @@ $\p{\vyst}{\phi,\,I}$, each $q_i = \p{\vyst}{\vzD,\,\phi_i,\,I}$ will be a sligh
 In the work above, we have assumed that observations of our variables of interest were corrupted by simple Gaussian noise. However, in many contexts, we instead observe \emph{censored} observations. That is, we might observe that a variable was above or below certain thresholds, but no more. Examples are rich within the weather sensor networks considered. Float sensors are prone to becoming lodged on sensor posts, reporting only that the water level is below that at which it is stuck. Conversely, wind sensors may reach their maximum reading in very strong winds, reporting that the wind is greater than this limit, but providing no more information. Furthermore, readings are often rounded to the nearest integer, meaning that if we observe a reading of $x$, we can say only that the true value was between $x-0.5$ and $x+0.5$. We can readily extend our inference framework to allow for such a noise model. 
 
 More precisely, we assume that we actually observe bounds $\vect{b}_c$ that constrain Gaussian-noise corrupted versions $\vz_c$ of the underlying variables of interest $\vy_c$ at $\vx_c$. This framework allows for imprecise censored observations. Note that the noise variance for censored observations may differ from the noise variance associated with other observations. Conditioned on a combination of censored and un-censored observations, the distribution for our variables of interest is
-\begin{align*} %\label{eq:CensoredFull}
-& \p{\vyst}{\vzD,\vect{b}_c,I}=\nonumber\\
-& \frac{\int\ud\phi\int_{\vect{b}_c}\ud\vz_c\, \p{\vyst}{\vzD,\vz_c,\phi,I}\p{\vz_c}{\vzD,\phi,I}\p{\vzD}{\phi,I}\p{\phi}{I}}
+\begin{equation*} %\label{eq:CensoredFull}
+\p{\vyst}{\vzD,\vect{b}_c,I} = \frac{\int\ud\phi\int_{\vect{b}_c}\ud\vz_c\, \p{\vyst}{\vzD,\vz_c,\phi,I}\p{\vz_c}{\vzD,\phi,I}\p{\vzD}{\phi,I}\p{\phi}{I}}
 {\int\ud\phi\int_{\vect{b}_c}\ud\vz_c\, \p{\vz_c}{\vzD,\phi,I}\p{\vzD}{\phi,I}\p{\phi}{I}}\,.
-\end{align*}
+\end{equation*}
 While we cannot determine this full, non-Gaussian distribution easily, we can determine the analytic forms for its mean and covariance. We use the abbreviations $\vect{m}_{c|d,\phi}\defequal\meanskinnysub{\vz}{c}{\vzD,\phi,I}$ and $\mat{C}_{c|d,\phi}\defequal\covskinnysub{\vz}{c}{\vzD,\phi,I}$.
 %and abuse notation slightly to have $\Ph{\vect{b}_c}{\vect{m}_{c|d}}{\mat{C}_{c|d}}\defequal\int_{\vect{b}_c}\ud\vz_c\,\N{\vz_c}{\vect{m}_{c|d}}{\mat{C}_{c|d}}$. 
 To reflect the influence of our censored observations, our likelihoods become
@@ -447,7 +416,7 @@ GP[1:\eta], \vect{\phi}_s, t)$\\ \cmmnt Move hyperparameter samples {\it move-in
 
 Our algorithm can also decide which observation to make at this time, by determining which sensor will allow it the longest period of grace until it would be forced to observe again. This clearly minimises the number of costly observations. Note that the uncertainty of a GP, as given by \eqref{eq:GPVar}, is actually dependent only on the location of the observation, not its actual value. Hence the uncertainty we imagine remaining after taking an observation from a sensor can be quickly determined without having to speculate about what data we might possibly collect. However, this is true only so long as we do not consider the impact of new observations on our hyperparameter sample weights \eqref{eq:weights}. Our approach is to take the model, in particular the weights over samples, as fixed, and investigate only how different schedules of observations affect our predictions within it. With this proviso, we are guaranteed to maintain our uncertainty below a specified threshold, while taking as few observations as possible.
 
-\section{Evaluation Datasets}\label{sec_implementation}
+\section{Evaluation Datasets}\label{sec_datasets}
 
 \begin{figure}
 \begin{center}
@@ -514,7 +483,7 @@ However, the Bramblemet sensor network only consists of four sensors, and thus, 
 
 \subsection{Wannengrat Alpine Observatory}
 
-The Wannengrat site consists of over twenty SensorScope stations to measure local weather conditions\footnote{see \url{http://www.swiss-experiment.ch/index.php/Wannengrat:Sensorscopedeployment}.}. This wireless sensor network is deployed with the aim of understanding the complex meterological processes occurring on the snowpack. For this network, we simply use the data from online data repository, and have had no direct interaction with the sensor network operators.
+The Wannengrat site consists of over twenty SensorScope stations to measure local weather conditions\footnote{See \url{http://www.swiss-experiment.ch/index.php/Wannengrat:Sensorscopedeployment}.}. This wireless sensor network is deployed with the aim of understanding the complex meterological processes occurring on the snowpack. For this network, we simply use the data from online data repository, and have had no direct interaction with the sensor network operators.
 
 \subsection{MIDAS Land Surface Weather Stations}
 
@@ -524,11 +493,10 @@ Finally, we use data from the UK Met Office MIDAS land surface stations data \ci
 
 \noindent In this section we empirically evaluate our information processing algorithm on real weather data collected from the sensor networks described above. 
 We will compare the use of our GP formalism built around a multiple-sensor covariance against a number of benchmarks:
-
-%\begin{itemize}
-{\bf Conventional independent GP\normalfont} in which each environmental variable is modelled separately (i.e. correlations between these parameters are ignored).
-
-{\bf Kalman filter\normalfont} in which a maximum a posteriori
+\begin{itemize}
+\item {\bf Conventional independent GP\normalfont} in which each environmental variable is modelled separately (i.e. correlations between these parameters are ignored).
+\vspace{0.125cm}
+\item {\bf Kalman filter\normalfont} in which a maximum a posteriori
 (MAP) recursion is used to govern the adaptions of the hyper-parameters (namely the state and observation noise processes) by sequentially using the maximum-likelihood formulation first proposed by \citeN{Jazwinski}. One step-ahead forecasts are successively iterated through the algorithm to provide multi-step
 forecasts of arbitrary length. Missing values, if they occur, are
 accommodated for using the scheme advocated by 
@@ -536,10 +504,9 @@ accommodated for using the scheme advocated by
 forecasting, using a $p$-th order lookback into the data, including
 cross-coupling between time-series, making it a recursive multivariate
 autoregressive, MAR($p$), process.
-
-
-{\bf Na\"{i}ve algorithm\normalfont} in which the prediction of the variable at the next time step is simply equal to that of the most recent observation at that sensor.
-%\end{itemize}
+\vspace{0.125cm}
+\item {\bf Na\"{i}ve algorithm\normalfont} in which the prediction of the variable at the next time step is simply equal to that of the most recent observation at that sensor.
+\end{itemize}
 The first benchmark illustrates the effectiveness of our Gaussian process formalism that expresses correlations between different sensors. The second benchmark is a state-of-the-art alternative, that has previously been used for tracking environmental sensor data \cite{kalman_oceanography}. Finally, the na\"{i}ve third benchmark provides a lower bound on the performance of a prediction algorithm.
 
 For the purposes of illustration, we will plot the sensor readings acquired by our algorithm (shown as markers), the mean and standard deviation of the GP prediction (shown as a solid line with plus or minus a single standard deviation shown as shading), and the true fine-grained sensor readings (shown as bold) that were downloaded directly from the sensor (rather than through the web site) after the event. Note that we present a limited number of sensors for reasons of space, but we use readings from all relevant sensors in order to perform inference. 
@@ -857,7 +824,7 @@ $\eta$ & 10 & 100 & 500 \\
 \begin{table}
 \centering
 % use packages: array
-% \caption{The numbers of stored data points, $N$, and hyperparameter samples, $\eta$, used for the various datasets presented in this paper.} 
+\textsl{}\caption{The numbers of stored data points, $N$, and hyperparameter samples, $\eta$, used for the various datasets presented in this paper.} 
 \label{tbl:numbers_of_samples} 
 \begin{tabular}{@{}lrr@{}}
 \\
@@ -883,7 +850,7 @@ Note that with our efficient updates, we expect the cost of computation to grow 
 
 In practice, we see that our efficient updates result in substantial improvements in computational speed once the quantity of data $N$ exceeds the threshold required to offset the small computational overheads introduced by using our approach instead of the already highly optimised LAPACK routines. For the largest cases investigated here we see an approximate four-fold increase in computation speed. For our weather datasets, samples are taken no more frequently than once a minute. Thus all of the information processing that we have described in this paper can easily be performed in real-time, and the increase in computational speed seen in our approach can be used to increase the number of data points considered or the number of hyperparameters samples used; both of which will likely increase the predictive power of the Gaussian process.
 
-\section{Trial Deployment}\label{sec_implementation}
+\section{Trial Deployment}\label{sec_trial_deployment}
 
 \noindent The results in the previous section indicate that the Gaussian process information processing approach developed here is relatively computationally expensive, and thus, is unlikely to be implementable on very low-power embedded devices. Due to this, and the fact that modelling the correlations between any two sensors requires the full history of observations from each sensor, it is most appropriate that our methodology is deployed at the sensor data repository where the sensor data is finally stored\footnote{Current examples of such repositories include Weather Underground (\url{http://www.wunderground.com}, pachube (\url{http://www.pachube.com/}) and Microsoft Research's SensorMap (\url{http://atom.research.microsoft.com/sensormap/}).}, or on the sink node of the sensor network (assuming that this node has more significant compuational resources).
 
@@ -929,7 +896,6 @@ Finally, we would like to use the probabilistic model that the GP builds to auto
 \noindent This research was undertaken as part of the ALADDIN (Autonomous Learning Agents for Decentralised Data and Information Networks) project, jointly funded by a BAE Systems and EPSRC strategic partnership (EP/C548051/1), and was also part of the Systems Engineering for Autonomous Systems (SEAS) Defence Technology Centre established by the UK Ministry of Defence. We would like to thank B. Blaydes of the Bramblemet/Chimet Support Group, and W. Heaps of Associated British Ports (ABP) for allowing us access to the weather sensor network, hosting our RDF data on the sensor web sites, and for providing raw sensor data as required. We also thank the UK Met office for the use of
 the MIDAS dataset.
 
- 
 \bibliographystyle{acmsmall}
 \bibliography{tosn_gp}
 
