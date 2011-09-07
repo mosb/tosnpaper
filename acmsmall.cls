@@ -88,15 +88,15 @@
 \def\filedate{July 15, 2010}
 
 % Metadata Information
-\def\@acmVolume{9} %the volume
-\def\@acmNumber{1} %the number
+\def\@acmVolume{V} %the volume
+\def\@acmNumber{N} %the number
 \def\@acmArticle{A} %article number
 \def\@articleSeq{1} %article Sequence
 \def\@acmPrice{10.00} %article price
-\def\@acmYear{2011} %the last two digits of the year, 
+\def\@acmYear{YYYY} %the last two digits of the year, 
 \def\@acmMonth{1}  %the month
-\def\@journalName{ACM Transactions on Sensor Networks} %the name of the ACM journal
-\def\@journalNameShort{TOSN} %the acronym of the ACM journal 
+\def\@journalName{ACM Journal Name} %the name of the ACM journal
+\def\@journalNameShort{ACM} %the acronym of the ACM journal 
 \def\@journalCode{jn} %the code of the ACM journal 
 \def\@permissionCodeOne{0000-0000} %the permission code of the ACM journal
 \def\@doi{0000000.0000000}

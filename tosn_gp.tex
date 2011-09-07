@@ -1,45 +1,95 @@
-\documentclass{acmsmall}
+%\documentclass{acmsmall}
+%\usepackage{preamble}
+%\catcode`\@=11
+%\usepackage{booktabs}
+%\usepackage{caption}
+%\newcommand{\dnt}[1]{_{{#1}}}
+%\newcommand{\Kl}[1]{K_{\text{#1}}}
+%\usepackage{nicefrac}
+%\usepackage{algorithmic}
+%\usepackage{algorithm}
+%\newcommand{\cmmnt}{// }
+
+%\markboth{M. A. Osborne et al.}{Real-Time Information Processing of Environmental Sensor Network Data}
+
+%\title{Real-Time Information Processing of Environmental Sensor Network Data using Bayesian Gaussian Processes\footnote{A preliminary version of the work presented in this paper appeared as: Osborne, M. A., Rogers, A., Ramchurn, S., Roberts, S. J. and Jennings, N. R. (2008) Towards Real-Time Information Processing of Sensor Network Data using Computationally Efficient Multi-output Gaussian Processes. In: International Conference on Information Processing in Sensor Networks (IPSN 2008), April 2008, St. Louis, Missouri, USA. pp. 109-120.}}
+
+%\author{M. A. Osborne and S. J. Roberts\\
+%Department of Engineering Science\\
+%University of Oxford\\
+%Oxford, OX1 3PJ, UK.\\
+%{\tt{\{mosb,sjrob\}@robots.ox.ac.uk}}\\
+%\and\\
+%A. Rogers and N. R. Jennings\\
+%School of Electronics and Computer Science\\
+%University of Southampton\\
+%Southampton, SO17 1BJ, UK.\\
+%{\tt{\{acr,nrj\}@ecs.soton.ac.uk}}\\
+%}
+
+
+\documentclass[prodmode,acmtecs]{acmsmall}
+
+% Package to generate and customize Algorithm as per ACM style
+\usepackage[ruled]{algorithm2e}
+\renewcommand{\algorithmcfname}{ALGORITHM}
+\SetAlFnt{\small}
+\SetAlCapFnt{\small}
+\SetAlCapNameFnt{\small}
+\SetAlCapHSkip{0pt}
+\IncMargin{-\parindent}
+
+% Mike's material
 \usepackage{preamble}
-\catcode`\@=11
 \usepackage{booktabs}
 \usepackage{caption}
 \newcommand{\dnt}[1]{_{{#1}}}
 \newcommand{\Kl}[1]{K_{\text{#1}}}
 \usepackage{nicefrac}
-\usepackage{algorithmic}
-\usepackage{algorithm}
+%\usepackage{algorithmic}
+%\usepackage{algorithm}
 \newcommand{\cmmnt}{// }
 
-\markboth{M. A. Osborne et al.}{Real-Time Information Processing of Environmental Sensor Network Data}
+% Metadata Information
+\acmVolume{9}
+\acmNumber{1}
+\acmArticle{}
+\acmYear{2012}
+\acmMonth{}
 
-\title{Real-Time Information Processing of Environmental Sensor Network Data using Bayesian Gaussian Processes\footnote{A preliminary version of the work presented in this paper appeared as: Osborne, M. A., Rogers, A., Ramchurn, S., Roberts, S. J. and Jennings, N. R. (2008) Towards Real-Time Information Processing of Sensor Network Data using Computationally Efficient Multi-output Gaussian Processes. In: International Conference on Information Processing in Sensor Networks (IPSN 2008), April 2008, St. Louis, Missouri, USA. pp. 109-120.}}
+\begin{document}
 
-\author{M. A. Osborne and S. J. Roberts\\
-Department of Engineering Science\\
-University of Oxford\\
-Oxford, OX1 3PJ, UK.\\
-{\tt{\{mosb,sjrob\}@robots.ox.ac.uk}}\\
-\and\\
-A. Rogers and N. R. Jennings\\
-School of Electronics and Computer Science\\
-University of Southampton\\
-Southampton, SO17 1BJ, UK.\\
-{\tt{\{acr,nrj\}@ecs.soton.ac.uk}}\\
-}
+% Page heads
+\markboth{M. A. Osborne et al.}{Real-Time Information Processing of Environmental Sensor Network Data using Bayesian Gaussian Processes}
+
+% Title portion
+\title{Real-Time Information Processing of Environmental Sensor Network Data using Bayesian Gaussian Processes}
+\author{MICHAEL A. OSBORNE
+\affil{Oxford University}
+STEPHEN. J. ROBERTS
+\affil{Oxford University}
+ALEX ROGERS
+\affil{University of Southampton}
+NICHOLAS R. JENNINGS
+\affil{University of Southampton}}
 
 \begin{abstract}
-
 \noindent In this paper, we consider the problem faced by a sensor network operator who must infer, in real-time, the value of some environmental parameter that is being monitored at discrete points in space and time by a sensor network. We describe a powerful and generic approach built upon an efficient multi-output Gaussian process that facilitates this information acquisition and processing. Our algorithm allows effective inference even with minimal domain knowledge, and we further introduce a formulation of Bayesian Monte Carlo to permit the principled management of the hyperparameters introduced by our flexible models. We demonstrate how our methods can be applied in cases where the data is delayed, intermittently missing, censored and/or correlated. We validate our approach using data collected from three networks of weather sensors and show that it yields better inference performance than both conventional independent Gaussian processes and the Kalman filter. Finally, we show that our formalism efficiently re-uses previous computations by following an online update procedure as new data sequentially arrives, and that this results in a four-fold increase in computational speed in the largest cases considered. 
 \end{abstract}
 
-\category{C.2.4}{Computer Communication Networks}{Distributed
-Systems~--~Distributed Applications}
+\category{C.2.4}{Computer Communication Networks}{Distributed Systems~--~Distributed Applications}
 
 \terms{Algorithms, Design, Performance}
 
 \keywords{Learning of models from data, Gaussian processes, information processing, adaptive sampling}
 
-\begin{document}
+\acmformat{Osborne, M. A., Roberts, S. J., Rogers, A. and Jennings, N. R. 2012. Real-time information processing of environmental sensor network data using Bayesian Gaussian processes.}
+
+\begin{bottomstuff}
+A preliminary version of the work presented in this paper appeared as: Osborne, M. A., Rogers, A., Ramchurn, S., Roberts, S. J. and Jennings, N. R. (2008) Towards Real-Time Information Processing of Sensor Network Data using Computationally Efficient Multi-output Gaussian Processes. In: International Conference on Information Processing in Sensor Networks (IPSN 2008), April 2008, St. Louis, Missouri, USA. pp. 109-120.
+
+Author's addresses: M. A. Osborne {and} S. J. Roberts, Department of Engineering, Oxford University, Oxford, UK; A. Rogers {and} N. R. Jennings, Electronics and Computer Science, University of Southampton, Southampton, UK.
+\end{bottomstuff}
 
 \maketitle
 
