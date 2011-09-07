@@ -2,6 +2,7 @@
 \usepackage{preamble}
 \catcode`\@=11
 \usepackage{booktabs}
+\usepackage{caption}
 \newcommand{\dnt}[1]{_{{#1}}}
 \newcommand{\Kl}[1]{K_{\text{#1}}}
 \usepackage{nicefrac}
@@ -473,9 +474,11 @@ Finally, we use data from the UK Met Office MIDAS land surface stations data \ci
 
 \noindent In this section we empirically evaluate our information processing algorithm on real weather data collected from the sensor networks described above. 
 We will compare the use of our GP formalism built around a multiple-sensor covariance against a number of benchmarks:
-\begin{itemize}
-\item[\bf Conventional independent GP\normalfont] in which each environmental variable is modelled separately (i.e. correlations between these parameters are ignored). 
-\item[\bf Kalman filter\normalfont] in which a maximum a posteriori
+
+%\begin{itemize}
+{\bf Conventional independent GP\normalfont} in which each environmental variable is modelled separately (i.e. correlations between these parameters are ignored).
+
+{\bf Kalman filter\normalfont} in which a maximum a posteriori
 (MAP) recursion is used to govern the adaptions of the hyper-parameters (namely the state and observation noise processes) by sequentially using the maximum-likelihood formulation first proposed by \citeN{Jazwinski}. One step-ahead forecasts are successively iterated through the algorithm to provide multi-step
 forecasts of arbitrary length. Missing values, if they occur, are
 accommodated for using the scheme advocated by 
@@ -483,8 +486,10 @@ accommodated for using the scheme advocated by
 forecasting, using a $p$-th order lookback into the data, including
 cross-coupling between time-series, making it a recursive multivariate
 autoregressive, MAR($p$), process.
-\item[\bf Na\"{i}ve algorithm\normalfont] in which the prediction of the variable at the next time step is simply equal to that of the most recent observation at that sensor.
-\end{itemize}
+
+
+{\bf Na\"{i}ve algorithm\normalfont} in which the prediction of the variable at the next time step is simply equal to that of the most recent observation at that sensor.
+%\end{itemize}
 The first benchmark illustrates the effectiveness of our Gaussian process formalism that expresses correlations between different sensors. The second benchmark is a state-of-the-art alternative, that has previously been used for tracking environmental sensor data \cite{kalman_oceanography}. Finally, the na\"{i}ve third benchmark provides a lower bound on the performance of a prediction algorithm.
 
 For the purposes of illustration, we will plot the sensor readings acquired by our algorithm (shown as markers), the mean and standard deviation of the GP prediction (shown as a solid line with plus or minus a single standard deviation shown as shading), and the true fine-grained sensor readings (shown as bold) that were downloaded directly from the sensor (rather than through the web site) after the event. Note that we present a limited number of sensors for reasons of space, but we use readings from all relevant sensors in order to perform inference. 
@@ -802,7 +807,7 @@ $\eta$ & 10 & 100 & 500 \\
 \begin{table}
 \centering
 % use packages: array
-\caption{The numbers of stored data points, $N$, and hyperparameter samples, $\eta$, used for the various datasets presented in this paper.} 
+% \caption{The numbers of stored data points, $N$, and hyperparameter samples, $\eta$, used for the various datasets presented in this paper.} 
 \label{tbl:numbers_of_samples} 
 \begin{tabular}{@{}lrr@{}}
 \\
